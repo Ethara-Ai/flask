@@ -211,14 +211,7 @@ class Blueprint(Scaffold):
         self._blueprints: list[tuple[Blueprint, dict[str, t.Any]]] = []
 
     def _check_setup_finished(self, f_name: str) -> None:
-        if self._got_registered_once:
-            raise AssertionError(
-                f"The setup method '{f_name}' can no longer be called on the blueprint"
-                f" '{self.name}'. It has already been registered at least once, any"
-                " changes will not be applied consistently.\n"
-                "Make sure all imports, decorators, functions, etc. needed to set up"
-                " the blueprint are done before registering it."
-            )
+        pass
 
     @setupmethod
     def record(self, func: DeferredSetupFunction) -> None:
@@ -227,7 +220,7 @@ class Blueprint(Scaffold):
         state as argument as returned by the :meth:`make_setup_state`
         method.
         """
-        self.deferred_functions.append(func)
+        pass
 
     @setupmethod
     def record_once(self, func: DeferredSetupFunction) -> None:
@@ -236,12 +229,7 @@ class Blueprint(Scaffold):
         blueprint is registered a second time on the application, the
         function passed is not called.
         """
-
-        def wrapper(state: BlueprintSetupState) -> None:
-            if state.first_registration:
-                func(state)
-
-        self.record(update_wrapper(wrapper, func))
+        pass
 
     def make_setup_state(
         self, app: App, options: dict[str, t.Any], first_registration: bool = False
@@ -250,7 +238,7 @@ class Blueprint(Scaffold):
         object that is later passed to the register callback functions.
         Subclasses can override this to return a subclass of the setup state.
         """
-        return BlueprintSetupState(self, app, options, first_registration)
+        pass
 
     @setupmethod
     def register_blueprint(self, blueprint: Blueprint, **options: t.Any) -> None:
@@ -299,115 +287,10 @@ class Blueprint(Scaffold):
             blueprint to be registered multiple times with unique names
             for ``url_for``.
         """
-        name_prefix = options.get("name_prefix", "")
-        self_name = options.get("name", self.name)
-        name = f"{name_prefix}.{self_name}".lstrip(".")
-
-        if name in app.blueprints:
-            bp_desc = "this" if app.blueprints[name] is self else "a different"
-            existing_at = f" '{name}'" if self_name != name else ""
-
-            raise ValueError(
-                f"The name '{self_name}' is already registered for"
-                f" {bp_desc} blueprint{existing_at}. Use 'name=' to"
-                f" provide a unique name."
-            )
-
-        first_bp_registration = not any(bp is self for bp in app.blueprints.values())
-        first_name_registration = name not in app.blueprints
-
-        app.blueprints[name] = self
-        self._got_registered_once = True
-        state = self.make_setup_state(app, options, first_bp_registration)
-
-        if self.has_static_folder:
-            state.add_url_rule(
-                f"{self.static_url_path}/<path:filename>",
-                view_func=self.send_static_file,  # type: ignore[attr-defined]
-                endpoint="static",
-            )
-
-        # Merge blueprint data into parent.
-        if first_bp_registration or first_name_registration:
-            self._merge_blueprint_funcs(app, name)
-
-        for deferred in self.deferred_functions:
-            deferred(state)
-
-        cli_resolved_group = options.get("cli_group", self.cli_group)
-
-        if self.cli.commands:
-            if cli_resolved_group is None:
-                app.cli.commands.update(self.cli.commands)
-            elif cli_resolved_group is _sentinel:
-                self.cli.name = name
-                app.cli.add_command(self.cli)
-            else:
-                self.cli.name = cli_resolved_group
-                app.cli.add_command(self.cli)
-
-        for blueprint, bp_options in self._blueprints:
-            bp_options = bp_options.copy()
-            bp_url_prefix = bp_options.get("url_prefix")
-            bp_subdomain = bp_options.get("subdomain")
-
-            if bp_subdomain is None:
-                bp_subdomain = blueprint.subdomain
-
-            if state.subdomain is not None and bp_subdomain is not None:
-                bp_options["subdomain"] = bp_subdomain + "." + state.subdomain
-            elif bp_subdomain is not None:
-                bp_options["subdomain"] = bp_subdomain
-            elif state.subdomain is not None:
-                bp_options["subdomain"] = state.subdomain
-
-            if bp_url_prefix is None:
-                bp_url_prefix = blueprint.url_prefix
-
-            if state.url_prefix is not None and bp_url_prefix is not None:
-                bp_options["url_prefix"] = (
-                    state.url_prefix.rstrip("/") + "/" + bp_url_prefix.lstrip("/")
-                )
-            elif bp_url_prefix is not None:
-                bp_options["url_prefix"] = bp_url_prefix
-            elif state.url_prefix is not None:
-                bp_options["url_prefix"] = state.url_prefix
-
-            bp_options["name_prefix"] = name
-            blueprint.register(app, bp_options)
+        pass
 
     def _merge_blueprint_funcs(self, app: App, name: str) -> None:
-        def extend(
-            bp_dict: dict[ft.AppOrBlueprintKey, list[t.Any]],
-            parent_dict: dict[ft.AppOrBlueprintKey, list[t.Any]],
-        ) -> None:
-            for key, values in bp_dict.items():
-                key = name if key is None else f"{name}.{key}"
-                parent_dict[key].extend(values)
-
-        for key, value in self.error_handler_spec.items():
-            key = name if key is None else f"{name}.{key}"
-            value = defaultdict(
-                dict,
-                {
-                    code: {exc_class: func for exc_class, func in code_values.items()}
-                    for code, code_values in value.items()
-                },
-            )
-            app.error_handler_spec[key] = value
-
-        for endpoint, func in self.view_functions.items():
-            app.view_functions[endpoint] = func
-
-        extend(self.before_request_funcs, app.before_request_funcs)
-        extend(self.after_request_funcs, app.after_request_funcs)
-        extend(
-            self.teardown_request_funcs,
-            app.teardown_request_funcs,
-        )
-        extend(self.url_default_functions, app.url_default_functions)
-        extend(self.url_value_preprocessors, app.url_value_preprocessors)
-        extend(self.template_context_processors, app.template_context_processors)
+        pass
 
     @setupmethod
     def add_url_rule(
@@ -462,15 +345,7 @@ class Blueprint(Scaffold):
         :param name: The name to register the filter as. If not given, uses the
             function's name.
         """
-        if callable(name):
-            self.add_app_template_filter(name)
-            return name
-
-        def decorator(f: T_template_filter) -> T_template_filter:
-            self.add_app_template_filter(f, name=name)
-            return f
-
-        return decorator
+        pass
 
     @setupmethod
     def add_app_template_filter(
@@ -488,11 +363,7 @@ class Blueprint(Scaffold):
         :param name: The name to register the filter as. If not given, uses the
             function's name.
         """
-
-        def register_template_filter(state: BlueprintSetupState) -> None:
-            state.app.add_template_filter(f, name=name)
-
-        self.record_once(register_template_filter)
+        pass
 
     @t.overload
     def app_template_test(self, name: T_template_test) -> T_template_test: ...
@@ -518,15 +389,7 @@ class Blueprint(Scaffold):
 
         .. versionadded:: 0.10
         """
-        if callable(name):
-            self.add_app_template_test(name)
-            return name
-
-        def decorator(f: T_template_test) -> T_template_test:
-            self.add_app_template_test(f, name=name)
-            return f
-
-        return decorator
+        pass
 
     @setupmethod
     def add_app_template_test(
@@ -546,11 +409,7 @@ class Blueprint(Scaffold):
 
         .. versionadded:: 0.10
         """
-
-        def register_template_test(state: BlueprintSetupState) -> None:
-            state.app.add_template_test(f, name=name)
-
-        self.record_once(register_template_test)
+        pass
 
     @t.overload
     def app_template_global(self, name: T_template_global) -> T_template_global: ...
@@ -576,15 +435,7 @@ class Blueprint(Scaffold):
 
         .. versionadded:: 0.10
         """
-        if callable(name):
-            self.add_app_template_global(name)
-            return name
-
-        def decorator(f: T_template_global) -> T_template_global:
-            self.add_app_template_global(f, name=name)
-            return f
-
-        return decorator
+        pass
 
     @setupmethod
     def add_app_template_global(
@@ -604,41 +455,28 @@ class Blueprint(Scaffold):
 
         .. versionadded:: 0.10
         """
-
-        def register_template_global(state: BlueprintSetupState) -> None:
-            state.app.add_template_global(f, name=name)
-
-        self.record_once(register_template_global)
+        pass
 
     @setupmethod
     def before_app_request(self, f: T_before_request) -> T_before_request:
         """Like :meth:`before_request`, but before every request, not only those handled
         by the blueprint. Equivalent to :meth:`.Flask.before_request`.
         """
-        self.record_once(
-            lambda s: s.app.before_request_funcs.setdefault(None, []).append(f)
-        )
-        return f
+        pass
 
     @setupmethod
     def after_app_request(self, f: T_after_request) -> T_after_request:
         """Like :meth:`after_request`, but after every request, not only those handled
         by the blueprint. Equivalent to :meth:`.Flask.after_request`.
         """
-        self.record_once(
-            lambda s: s.app.after_request_funcs.setdefault(None, []).append(f)
-        )
-        return f
+        pass
 
     @setupmethod
     def teardown_app_request(self, f: T_teardown) -> T_teardown:
         """Like :meth:`teardown_request`, but after every request, not only those
         handled by the blueprint. Equivalent to :meth:`.Flask.teardown_request`.
         """
-        self.record_once(
-            lambda s: s.app.teardown_request_funcs.setdefault(None, []).append(f)
-        )
-        return f
+        pass
 
     @setupmethod
     def app_context_processor(
@@ -647,10 +485,7 @@ class Blueprint(Scaffold):
         """Like :meth:`context_processor`, but for templates rendered by every view, not
         only by the blueprint. Equivalent to :meth:`.Flask.context_processor`.
         """
-        self.record_once(
-            lambda s: s.app.template_context_processors.setdefault(None, []).append(f)
-        )
-        return f
+        pass
 
     @setupmethod
     def app_errorhandler(
@@ -659,15 +494,7 @@ class Blueprint(Scaffold):
         """Like :meth:`errorhandler`, but for every request, not only those handled by
         the blueprint. Equivalent to :meth:`.Flask.errorhandler`.
         """
-
-        def decorator(f: T_error_handler) -> T_error_handler:
-            def from_blueprint(state: BlueprintSetupState) -> None:
-                state.app.errorhandler(code)(f)
-
-            self.record_once(from_blueprint)
-            return f
-
-        return decorator
+        pass
 
     @setupmethod
     def app_url_value_preprocessor(
@@ -676,17 +503,11 @@ class Blueprint(Scaffold):
         """Like :meth:`url_value_preprocessor`, but for every request, not only those
         handled by the blueprint. Equivalent to :meth:`.Flask.url_value_preprocessor`.
         """
-        self.record_once(
-            lambda s: s.app.url_value_preprocessors.setdefault(None, []).append(f)
-        )
-        return f
+        pass
 
     @setupmethod
     def app_url_defaults(self, f: T_url_defaults) -> T_url_defaults:
         """Like :meth:`url_defaults`, but for every request, not only those handled by
         the blueprint. Equivalent to :meth:`.Flask.url_defaults`.
         """
-        self.record_once(
-            lambda s: s.app.url_default_functions.setdefault(None, []).append(f)
-        )
-        return f
+        pass

@@ -85,10 +85,7 @@ class _AppCtxGlobals:
 
         .. versionadded:: 0.11
         """
-        if default is _sentinel:
-            return self.__dict__.pop(name)
-        else:
-            return self.__dict__.pop(name, default)
+        pass
 
     def setdefault(self, name: str, default: t.Any = None) -> t.Any:
         """Get the value of an attribute if it is present, otherwise
@@ -100,7 +97,7 @@ class _AppCtxGlobals:
 
         .. versionadded:: 0.11
         """
-        return self.__dict__.setdefault(name, default)
+        pass
 
     def __contains__(self, item: str) -> bool:
         return item in self.__dict__
@@ -136,16 +133,7 @@ def after_this_request(
 
     .. versionadded:: 0.9
     """
-    ctx = _cv_app.get(None)
-
-    if ctx is None or not ctx.has_request:
-        raise RuntimeError(
-            "'after_this_request' can only be used when a request"
-            " context is active, such as in a view function."
-        )
-
-    ctx._after_request_functions.append(f)
-    return f
+    pass
 
 
 F = t.TypeVar("F", bound=t.Callable[..., t.Any])
@@ -189,21 +177,7 @@ def copy_current_request_context(f: F) -> F:
 
     .. versionadded:: 0.10
     """
-    ctx = _cv_app.get(None)
-
-    if ctx is None:
-        raise RuntimeError(
-            "'copy_current_request_context' can only be used when a"
-            " request context is active, such as in a view function."
-        )
-
-    ctx = ctx.copy()
-
-    def wrapper(*args: t.Any, **kwargs: t.Any) -> t.Any:
-        with ctx:
-            return ctx.app.ensure_sync(f)(*args, **kwargs)
-
-    return update_wrapper(wrapper, f)  # type: ignore[return-value]
+    pass
 
 
 def has_request_context() -> bool:
@@ -229,7 +203,7 @@ def has_request_context() -> bool:
 
     .. versionadded:: 0.7
     """
-    return (ctx := _cv_app.get(None)) is not None and ctx.has_request
+    pass
 
 
 def has_app_context() -> bool:
@@ -254,7 +228,7 @@ def has_app_context() -> bool:
 
     .. versionadded:: 0.9
     """
-    return _cv_app.get(None) is not None
+    pass
 
 
 class AppContext:
@@ -343,14 +317,12 @@ class AppContext:
         :param app: The application this context represents.
         :param environ: The request data this context represents.
         """
-        request = app.request_class(environ)
-        request.json_module = app.json
-        return cls(app, request=request)
+        pass
 
     @property
     def has_request(self) -> bool:
         """True if this context was created with request data."""
-        return self._request is not None
+        pass
 
     def copy(self) -> te.Self:
         """Create a new context with the same data objects as this context. See
@@ -361,11 +333,7 @@ class AppContext:
 
         .. versionadded:: 0.10
         """
-        return self.__class__(
-            self.app,
-            request=self._request,
-            session=self._session,
-        )
+        pass
 
     @property
     def request(self) -> Request:
@@ -373,24 +341,11 @@ class AppContext:
         :data:`.request`. Only available in request contexts, otherwise raises
         :exc:`RuntimeError`.
         """
-        if self._request is None:
-            raise RuntimeError("There is no request in this context.")
-
-        return self._request
+        pass
 
     def _get_session(self) -> SessionMixin:
         """Open the session if it is not already open for this request context."""
-        if self._request is None:
-            raise RuntimeError("There is no request in this context.")
-
-        if self._session is None:
-            si = self.app.session_interface
-            self._session = si.open_session(self.app, self.request)
-
-            if self._session is None:
-                self._session = si.make_null_session(self.app)
-
-        return self._session
+        pass
 
     @property
     def session(self) -> SessionMixin:
@@ -398,20 +353,13 @@ class AppContext:
         :data:`.session`. Only available in request contexts, otherwise raises
         :exc:`RuntimeError`. Accessing this sets :attr:`.SessionMixin.accessed`.
         """
-        session = self._get_session()
-        session.accessed = True
-        return session
+        pass
 
     def match_request(self) -> None:
         """Apply routing to the current request, storing either the matched
         endpoint and args, or a routing exception.
         """
-        try:
-            result = self.url_adapter.match(return_rule=True)  # type: ignore[union-attr]
-        except HTTPException as e:
-            self._request.routing_exception = e  # type: ignore[union-attr]
-        else:
-            self._request.url_rule, self._request.view_args = result  # type: ignore[union-attr]
+        pass
 
     def push(self) -> None:
         """Push this context so that it is the active context. If this is a
@@ -425,23 +373,7 @@ class AppContext:
         pushed multiple times. It will only trigger matching and signals if it
         is not currently pushed.
         """
-        self._push_count += 1
-
-        if self._cv_token is not None:
-            return
-
-        self._cv_token = _cv_app.set(self)
-        appcontext_pushed.send(self.app, _async_wrapper=self.app.ensure_sync)
-
-        if self._request is not None:
-            # Open the session at the moment that the request context is available.
-            # This allows a custom open_session method to use the request context.
-            self._get_session()
-
-            # Match the request URL after loading the session, so that the
-            # session is available in custom URL converters.
-            if self.url_adapter is not None:
-                self.match_request()
+        pass
 
     def pop(self, exc: BaseException | None = None) -> None:
         """Pop this context so that it is no longer the active context. Then
@@ -462,46 +394,7 @@ class AppContext:
         .. versionchanged:: 0.9
             Added the ``exc`` argument.
         """
-        if self._cv_token is None:
-            raise RuntimeError(f"Cannot pop this context ({self!r}), it is not pushed.")
-
-        ctx = _cv_app.get(None)
-
-        if ctx is None or self._cv_token is None:
-            raise RuntimeError(
-                f"Cannot pop this context ({self!r}), there is no active context."
-            )
-
-        if ctx is not self:
-            raise RuntimeError(
-                f"Cannot pop this context ({self!r}), it is not the active"
-                f" context ({ctx!r})."
-            )
-
-        self._push_count -= 1
-
-        if self._push_count > 0:
-            return
-
-        collect_errors = _CollectErrors()
-
-        if self._request is not None:
-            with collect_errors:
-                self.app.do_teardown_request(self, exc)
-
-            with collect_errors:
-                self._request.close()
-
-        with collect_errors:
-            self.app.do_teardown_appcontext(self, exc)
-
-        _cv_app.reset(self._cv_token)
-        self._cv_token = None
-
-        with collect_errors:
-            appcontext_popped.send(self.app, _async_wrapper=self.app.ensure_sync)
-
-        collect_errors.raise_any("Errors during context teardown")
+        pass
 
     def __enter__(self) -> te.Self:
         self.push()

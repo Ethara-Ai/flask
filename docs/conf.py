@@ -70,32 +70,8 @@ gettext_compact = False
 
 
 def github_link(name, rawtext, text, lineno, inliner, options=None, content=None):
-    app = inliner.document.settings.env.app
-    release = app.config.release
-    base_url = "https://github.com/pallets/flask/tree/"
-
-    if text.endswith(">"):
-        words, text = text[:-1].rsplit("<", 1)
-        words = words.strip()
-    else:
-        words = None
-
-    if packaging.version.parse(release).is_devrelease:
-        url = f"{base_url}main/{text}"
-    else:
-        url = f"{base_url}{release}/{text}"
-
-    if words is None:
-        words = url
-
-    from docutils.nodes import reference
-    from docutils.parsers.rst.roles import set_classes
-
-    options = options or {}
-    set_classes(options)
-    node = reference(rawtext, words, refuri=url, **options)
-    return [node], []
+    pass
 
 
 def setup(app):
-    app.add_role("gh", github_link)
+    pass

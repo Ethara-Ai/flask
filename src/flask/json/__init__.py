@@ -37,11 +37,7 @@ def dumps(obj: t.Any, **kwargs: t.Any) -> str:
         ``app`` can be passed directly, rather than requiring an app
         context for configuration.
     """
-    if current_app:
-        return current_app.json.dumps(obj, **kwargs)
-
-    kwargs.setdefault("default", _default)
-    return _json.dumps(obj, **kwargs)
+    pass
 
 
 def dump(obj: t.Any, fp: t.IO[str], **kwargs: t.Any) -> None:
@@ -67,11 +63,7 @@ def dump(obj: t.Any, fp: t.IO[str], **kwargs: t.Any) -> None:
         Writing to a binary file, and the ``encoding`` argument, will be
         removed in Flask 2.1.
     """
-    if current_app:
-        current_app.json.dump(obj, fp, **kwargs)
-    else:
-        kwargs.setdefault("default", _default)
-        _json.dump(obj, fp, **kwargs)
+    pass
 
 
 def loads(s: str | bytes, **kwargs: t.Any) -> t.Any:
@@ -99,10 +91,7 @@ def loads(s: str | bytes, **kwargs: t.Any) -> t.Any:
         ``app`` can be passed directly, rather than requiring an app
         context for configuration.
     """
-    if current_app:
-        return current_app.json.loads(s, **kwargs)
-
-    return _json.loads(s, **kwargs)
+    pass
 
 
 def load(fp: t.IO[t.AnyStr], **kwargs: t.Any) -> t.Any:
@@ -129,10 +118,7 @@ def load(fp: t.IO[t.AnyStr], **kwargs: t.Any) -> t.Any:
         ``encoding`` will be removed in Flask 2.1. The file must be text
         mode, or binary mode with UTF-8 bytes.
     """
-    if current_app:
-        return current_app.json.load(fp, **kwargs)
-
-    return _json.load(fp, **kwargs)
+    pass
 
 
 def jsonify(*args: t.Any, **kwargs: t.Any) -> Response:
@@ -167,4 +153,4 @@ def jsonify(*args: t.Any, **kwargs: t.Any) -> Response:
 
     .. versionadded:: 0.2
     """
-    return current_app.json.response(*args, **kwargs)  # type: ignore[return-value]
+    pass

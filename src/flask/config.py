@@ -111,17 +111,7 @@ class Config(dict):  # type: ignore[type-arg]
                        files.
         :return: ``True`` if the file was loaded successfully.
         """
-        rv = os.environ.get(variable_name)
-        if not rv:
-            if silent:
-                return False
-            raise RuntimeError(
-                f"The environment variable {variable_name!r} is not set"
-                " and as such configuration could not be loaded. Set"
-                " this variable and make it point to a configuration"
-                " file"
-            )
-        return self.from_pyfile(rv, silent=silent)
+        pass
 
     def from_prefixed_env(
         self, prefix: str = "FLASK", *, loads: t.Callable[[str], t.Any] = json.loads
@@ -149,40 +139,7 @@ class Config(dict):  # type: ignore[type-arg]
 
         .. versionadded:: 2.1
         """
-        prefix = f"{prefix}_"
-
-        for key in sorted(os.environ):
-            if not key.startswith(prefix):
-                continue
-
-            value = os.environ[key]
-            key = key.removeprefix(prefix)
-
-            try:
-                value = loads(value)
-            except Exception:
-                # Keep the value as a string if loading failed.
-                pass
-
-            if "__" not in key:
-                # A non-nested key, set directly.
-                self[key] = value
-                continue
-
-            # Traverse nested dictionaries with keys separated by "__".
-            current = self
-            *parts, tail = key.split("__")
-
-            for part in parts:
-                # If an intermediate dict does not exist, create it.
-                if part not in current:
-                    current[part] = {}
-
-                current = current[part]
-
-            current[tail] = value
-
-        return True
+        pass
 
     def from_pyfile(
         self, filename: str | os.PathLike[str], silent: bool = False
@@ -201,19 +158,7 @@ class Config(dict):  # type: ignore[type-arg]
         .. versionadded:: 0.7
            `silent` parameter.
         """
-        filename = os.path.join(self.root_path, filename)
-        d = types.ModuleType("config")
-        d.__file__ = filename
-        try:
-            with open(filename, mode="rb") as config_file:
-                exec(compile(config_file.read(), filename, "exec"), d.__dict__)
-        except OSError as e:
-            if silent and e.errno in (errno.ENOENT, errno.EISDIR, errno.ENOTDIR):
-                return False
-            e.strerror = f"Unable to load configuration file ({e.strerror})"
-            raise
-        self.from_object(d)
-        return True
+        pass
 
     def from_object(self, obj: object | str) -> None:
         """Updates the values from the given object.  An object can be of one
@@ -247,11 +192,7 @@ class Config(dict):  # type: ignore[type-arg]
 
         :param obj: an import name or object
         """
-        if isinstance(obj, str):
-            obj = import_string(obj)
-        for key in dir(obj):
-            if key.isupper():
-                self[key] = getattr(obj, key)
+        pass
 
     def from_file(
         self,
@@ -287,19 +228,7 @@ class Config(dict):  # type: ignore[type-arg]
 
         .. versionadded:: 2.0
         """
-        filename = os.path.join(self.root_path, filename)
-
-        try:
-            with open(filename, "r" if text else "rb") as f:
-                obj = load(f)
-        except OSError as e:
-            if silent and e.errno in (errno.ENOENT, errno.EISDIR):
-                return False
-
-            e.strerror = f"Unable to load configuration file ({e.strerror})"
-            raise
-
-        return self.from_mapping(obj)
+        pass
 
     def from_mapping(
         self, mapping: t.Mapping[str, t.Any] | None = None, **kwargs: t.Any
@@ -311,14 +240,7 @@ class Config(dict):  # type: ignore[type-arg]
 
         .. versionadded:: 0.11
         """
-        mappings: dict[str, t.Any] = {}
-        if mapping is not None:
-            mappings.update(mapping)
-        mappings.update(kwargs)
-        for key, value in mappings.items():
-            if key.isupper():
-                self[key] = value
-        return True
+        pass
 
     def get_namespace(
         self, namespace: str, lowercase: bool = True, trim_namespace: bool = True
@@ -350,18 +272,7 @@ class Config(dict):  # type: ignore[type-arg]
 
         .. versionadded:: 0.11
         """
-        rv = {}
-        for k, v in self.items():
-            if not k.startswith(namespace):
-                continue
-            if trim_namespace:
-                key = k[len(namespace) :]
-            else:
-                key = k
-            if lowercase:
-                key = key.lower()
-            rv[key] = v
-        return rv
+        pass
 
     def __repr__(self) -> str:
         return f"<{type(self).__name__} {dict.__repr__(self)}>"

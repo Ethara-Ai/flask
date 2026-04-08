@@ -50,10 +50,7 @@ T_template_test = t.TypeVar("T_template_test", bound=ft.TemplateTestCallable)
 
 
 def _make_timedelta(value: timedelta | int | None) -> timedelta | None:
-    if value is None or isinstance(value, timedelta):
-        return value
-
-    return timedelta(seconds=value)
+    pass
 
 
 class App(Scaffold):
@@ -408,16 +405,7 @@ class App(Scaffold):
         self._got_first_request = False
 
     def _check_setup_finished(self, f_name: str) -> None:
-        if self._got_first_request:
-            raise AssertionError(
-                f"The setup method '{f_name}' can no longer be called"
-                " on the application. It has already handled its first"
-                " request, any changes will not be applied"
-                " consistently.\n"
-                "Make sure all imports, decorators, functions, etc."
-                " needed to set up the application are done before"
-                " running it."
-            )
+        pass
 
     @cached_property
     def name(self) -> str:
@@ -429,12 +417,7 @@ class App(Scaffold):
 
         .. versionadded:: 0.8
         """
-        if self.import_name == "__main__":
-            fn: str | None = getattr(sys.modules["__main__"], "__file__", None)
-            if fn is None:
-                return "__main__"
-            return os.path.splitext(os.path.basename(fn))[0]
-        return self.import_name
+        pass
 
     @cached_property
     def logger(self) -> logging.Logger:
@@ -461,7 +444,7 @@ class App(Scaffold):
 
         .. versionadded:: 0.3
         """
-        return create_logger(self)
+        pass
 
     @cached_property
     def jinja_env(self) -> Environment:
@@ -471,7 +454,7 @@ class App(Scaffold):
         accessed. Changing :attr:`jinja_options` after that will have no
         effect.
         """
-        return self.create_jinja_environment()
+        pass
 
     def create_jinja_environment(self) -> Environment:
         raise NotImplementedError()
@@ -485,12 +468,7 @@ class App(Scaffold):
 
         .. versionadded:: 0.8
         """
-        root_path = self.root_path
-        if instance_relative:
-            root_path = self.instance_path
-        defaults = dict(self.default_config)
-        defaults["DEBUG"] = get_debug_flag()
-        return self.config_class(root_path, defaults)
+        pass
 
     def make_aborter(self) -> Aborter:
         """Create the object to assign to :attr:`aborter`. That object
@@ -502,7 +480,7 @@ class App(Scaffold):
 
         .. versionadded:: 2.2
         """
-        return self.aborter_class()
+        pass
 
     def auto_find_instance_path(self) -> str:
         """Tries to locate the instance path if it was not provided to the
@@ -512,10 +490,7 @@ class App(Scaffold):
 
         .. versionadded:: 0.8
         """
-        prefix, package_path = find_package(self.import_name)
-        if prefix is None:
-            return os.path.join(package_path, "instance")
-        return os.path.join(prefix, "var", f"{self.name}-instance")
+        pass
 
     def create_global_jinja_loader(self) -> DispatchingJinjaLoader:
         """Creates the loader for the Jinja environment.  Can be used to
@@ -528,7 +503,7 @@ class App(Scaffold):
 
         .. versionadded:: 0.7
         """
-        return DispatchingJinjaLoader(self)
+        pass
 
     def select_jinja_autoescape(self, filename: str | None) -> bool:
         """Returns ``True`` if autoescaping should be active for the given
@@ -539,9 +514,7 @@ class App(Scaffold):
 
         .. versionadded:: 0.5
         """
-        if filename is None:
-            return True
-        return filename.endswith((".html", ".htm", ".xml", ".xhtml", ".svg"))
+        pass
 
     @property
     def debug(self) -> bool:
@@ -554,14 +527,11 @@ class App(Scaffold):
 
         Default: ``False``
         """
-        return self.config["DEBUG"]  # type: ignore[no-any-return]
+        pass
 
     @debug.setter
     def debug(self, value: bool) -> None:
-        self.config["DEBUG"] = value
-
-        if self.config["TEMPLATES_AUTO_RELOAD"] is None:
-            self.jinja_env.auto_reload = value
+        pass
 
     @setupmethod
     def register_blueprint(self, blueprint: Blueprint, **options: t.Any) -> None:
@@ -596,7 +566,7 @@ class App(Scaffold):
 
         .. versionadded:: 0.11
         """
-        return self.blueprints.values()
+        pass
 
     @setupmethod
     def add_url_rule(
@@ -682,15 +652,7 @@ class App(Scaffold):
         :param name: The name to register the filter as. If not given, uses the
             function's name.
         """
-        if callable(name):
-            self.add_template_filter(name)
-            return name
-
-        def decorator(f: T_template_filter) -> T_template_filter:
-            self.add_template_filter(f, name=name)
-            return f
-
-        return decorator
+        pass
 
     @setupmethod
     def add_template_filter(
@@ -705,7 +667,7 @@ class App(Scaffold):
         :param name: The name to register the filter as. If not given, uses the
             function's name.
         """
-        self.jinja_env.filters[name or f.__name__] = f
+        pass
 
     @t.overload
     def template_test(self, name: T_template_test) -> T_template_test: ...
@@ -739,15 +701,7 @@ class App(Scaffold):
 
         .. versionadded:: 0.10
         """
-        if callable(name):
-            self.add_template_test(name)
-            return name
-
-        def decorator(f: T_template_test) -> T_template_test:
-            self.add_template_test(f, name=name)
-            return f
-
-        return decorator
+        pass
 
     @setupmethod
     def add_template_test(
@@ -764,7 +718,7 @@ class App(Scaffold):
 
         .. versionadded:: 0.10
         """
-        self.jinja_env.tests[name or f.__name__] = f
+        pass
 
     @t.overload
     def template_global(self, name: T_template_global) -> T_template_global: ...
@@ -793,15 +747,7 @@ class App(Scaffold):
 
         .. versionadded:: 0.10
         """
-        if callable(name):
-            self.add_template_global(name)
-            return name
-
-        def decorator(f: T_template_global) -> T_template_global:
-            self.add_template_global(f, name=name)
-            return f
-
-        return decorator
+        pass
 
     @setupmethod
     def add_template_global(
@@ -818,7 +764,7 @@ class App(Scaffold):
 
         .. versionadded:: 0.10
         """
-        self.jinja_env.globals[name or f.__name__] = f
+        pass
 
     @setupmethod
     def teardown_appcontext(self, f: T_teardown) -> T_teardown:
@@ -848,8 +794,7 @@ class App(Scaffold):
 
         .. versionadded:: 0.9
         """
-        self.teardown_appcontext_funcs.append(f)
-        return f
+        pass
 
     @setupmethod
     def shell_context_processor(
@@ -859,8 +804,7 @@ class App(Scaffold):
 
         .. versionadded:: 0.11
         """
-        self.shell_context_processors.append(f)
-        return f
+        pass
 
     def _find_error_handler(
         self, e: Exception, blueprints: list[str]
@@ -870,22 +814,7 @@ class App(Scaffold):
         blueprint handler for an exception class, app handler for an exception
         class, or ``None`` if a suitable handler is not found.
         """
-        exc_class, code = self._get_exc_class_and_code(type(e))
-        names = (*blueprints, None)
-
-        for c in (code, None) if code is not None else (None,):
-            for name in names:
-                handler_map = self.error_handler_spec[name][c]
-
-                if not handler_map:
-                    continue
-
-                for cls in exc_class.__mro__:
-                    handler = handler_map.get(cls)
-
-                    if handler is not None:
-                        return handler
-        return None
+        pass
 
     def trap_http_exception(self, e: Exception) -> bool:
         """Checks if an HTTP exception should be trapped or not.  By default
@@ -904,23 +833,7 @@ class App(Scaffold):
 
         .. versionadded:: 0.8
         """
-        if self.config["TRAP_HTTP_EXCEPTIONS"]:
-            return True
-
-        trap_bad_request = self.config["TRAP_BAD_REQUEST_ERRORS"]
-
-        # if unset, trap key errors in debug mode
-        if (
-            trap_bad_request is None
-            and self.debug
-            and isinstance(e, BadRequestKeyError)
-        ):
-            return True
-
-        if trap_bad_request:
-            return isinstance(e, BadRequest)
-
-        return False
+        pass
 
     should_ignore_error: None = None
     """If this method returns ``True``, the error will not be passed to
@@ -948,11 +861,7 @@ class App(Scaffold):
         .. versionadded:: 2.2
             Moved from ``flask.redirect``, which calls this method.
         """
-        return _wz_redirect(
-            location,
-            code=code,
-            Response=self.response_class,  # type: ignore[arg-type]
-        )
+        pass
 
     def inject_url_defaults(self, endpoint: str, values: dict[str, t.Any]) -> None:
         """Injects the URL defaults for the given endpoint directly into
@@ -961,19 +870,7 @@ class App(Scaffold):
 
         .. versionadded:: 0.7
         """
-        names: t.Iterable[str | None] = (None,)
-
-        # url_for may be called outside a request context, parse the
-        # passed endpoint instead of using request.blueprints.
-        if "." in endpoint:
-            names = chain(
-                names, reversed(_split_blueprint_path(endpoint.rpartition(".")[0]))
-            )
-
-        for name in names:
-            if name in self.url_default_functions:
-                for func in self.url_default_functions[name]:
-                    func(endpoint, values)
+        pass
 
     def handle_url_build_error(
         self, error: BuildError, endpoint: str, values: dict[str, t.Any]
@@ -992,19 +889,4 @@ class App(Scaffold):
         :param endpoint: The endpoint being built.
         :param values: The keyword arguments passed to ``url_for``.
         """
-        for handler in self.url_build_error_handlers:
-            try:
-                rv = handler(error, endpoint, values)
-            except BuildError as e:
-                # make error available outside except block
-                error = e
-            else:
-                if rv is not None:
-                    return rv
-
-        # Re-raise if called with an active exception, otherwise raise
-        # the passed in exception.
-        if error is sys.exc_info()[1]:
-            raise
-
-        raise error
+        pass

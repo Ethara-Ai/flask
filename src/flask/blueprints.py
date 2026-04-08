@@ -69,15 +69,7 @@ class Blueprint(SansioBlueprint):
 
         .. versionadded:: 0.9
         """
-        value = current_app.config["SEND_FILE_MAX_AGE_DEFAULT"]
-
-        if value is None:
-            return None
-
-        if isinstance(value, timedelta):
-            return int(value.total_seconds())
-
-        return value  # type: ignore[no-any-return]
+        pass
 
     def send_static_file(self, filename: str) -> Response:
         """The view function used to serve files from
@@ -91,15 +83,7 @@ class Blueprint(SansioBlueprint):
         .. versionadded:: 0.5
 
         """
-        if not self.has_static_folder:
-            raise RuntimeError("'static_folder' must be set to serve static_files.")
-
-        # send_file only knows to call get_send_file_max_age on the app,
-        # call it here so it works for blueprints too.
-        max_age = self.get_send_file_max_age(filename)
-        return send_from_directory(
-            t.cast(str, self.static_folder), filename, max_age=max_age
-        )
+        pass
 
     def open_resource(
         self, resource: str, mode: str = "rb", encoding: str | None = "utf-8"
@@ -117,12 +101,4 @@ class Blueprint(SansioBlueprint):
         .. versionchanged:: 3.1
             Added the ``encoding`` parameter.
         """
-        if mode not in {"r", "rt", "rb"}:
-            raise ValueError("Resources can only be opened for reading.")
-
-        path = os.path.join(self.root_path, resource)
-
-        if mode == "rb":
-            return open(path, mode)  # pyright: ignore
-
-        return open(path, mode, encoding=encoding)
+        pass

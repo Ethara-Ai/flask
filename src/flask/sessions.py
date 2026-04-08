@@ -27,11 +27,11 @@ class SessionMixin(MutableMapping[str, t.Any]):
     @property
     def permanent(self) -> bool:
         """This reflects the ``'_permanent'`` key in the dict."""
-        return self.get("_permanent", False)  # type: ignore[no-any-return]
+        pass
 
     @permanent.setter
     def permanent(self, value: bool) -> None:
-        self["_permanent"] = bool(value)
+        pass
 
     #: Some implementations can detect whether a session is newly
     #: created, but that is not guaranteed. Use with caution. The mixin
@@ -75,7 +75,7 @@ class SecureCookieSession(CallbackDict[str, t.Any], SessionMixin):
         initial: c.Mapping[str, t.Any] | None = None,
     ) -> None:
         def on_update(self: te.Self) -> None:
-            self.modified = True
+            pass
 
         super().__init__(initial, on_update)
 
@@ -157,7 +157,7 @@ class SessionInterface:
 
         This creates an instance of :attr:`null_session_class` by default.
         """
-        return self.null_session_class()
+        pass
 
     def is_null_session(self, obj: object) -> bool:
         """Checks if a given object is a null session.  Null sessions are
@@ -166,11 +166,11 @@ class SessionInterface:
         This checks if the object is an instance of :attr:`null_session_class`
         by default.
         """
-        return isinstance(obj, self.null_session_class)
+        pass
 
     def get_cookie_name(self, app: Flask) -> str:
         """The name of the session cookie. Uses``app.config["SESSION_COOKIE_NAME"]``."""
-        return app.config["SESSION_COOKIE_NAME"]  # type: ignore[no-any-return]
+        pass
 
     def get_cookie_domain(self, app: Flask) -> str | None:
         """The value of the ``Domain`` parameter on the session cookie. If not set,
@@ -182,7 +182,7 @@ class SessionInterface:
         .. versionchanged:: 2.3
             Not set by default, does not fall back to ``SERVER_NAME``.
         """
-        return app.config["SESSION_COOKIE_DOMAIN"]  # type: ignore[no-any-return]
+        pass
 
     def get_cookie_path(self, app: Flask) -> str:
         """Returns the path for which the cookie should be valid.  The
@@ -190,27 +190,27 @@ class SessionInterface:
         config var if it's set, and falls back to ``APPLICATION_ROOT`` or
         uses ``/`` if it's ``None``.
         """
-        return app.config["SESSION_COOKIE_PATH"] or app.config["APPLICATION_ROOT"]  # type: ignore[no-any-return]
+        pass
 
     def get_cookie_httponly(self, app: Flask) -> bool:
         """Returns True if the session cookie should be httponly.  This
         currently just returns the value of the ``SESSION_COOKIE_HTTPONLY``
         config var.
         """
-        return app.config["SESSION_COOKIE_HTTPONLY"]  # type: ignore[no-any-return]
+        pass
 
     def get_cookie_secure(self, app: Flask) -> bool:
         """Returns True if the cookie should be secure.  This currently
         just returns the value of the ``SESSION_COOKIE_SECURE`` setting.
         """
-        return app.config["SESSION_COOKIE_SECURE"]  # type: ignore[no-any-return]
+        pass
 
     def get_cookie_samesite(self, app: Flask) -> str | None:
         """Return ``'Strict'`` or ``'Lax'`` if the cookie should use the
         ``SameSite`` attribute. This currently just returns the value of
         the :data:`SESSION_COOKIE_SAMESITE` setting.
         """
-        return app.config["SESSION_COOKIE_SAMESITE"]  # type: ignore[no-any-return]
+        pass
 
     def get_cookie_partitioned(self, app: Flask) -> bool:
         """Returns True if the cookie should be partitioned. By default, uses
@@ -218,7 +218,7 @@ class SessionInterface:
 
         .. versionadded:: 3.1
         """
-        return app.config["SESSION_COOKIE_PARTITIONED"]  # type: ignore[no-any-return]
+        pass
 
     def get_expiration_time(self, app: Flask, session: SessionMixin) -> datetime | None:
         """A helper method that returns an expiration date for the session
@@ -226,9 +226,7 @@ class SessionInterface:
         default implementation returns now + the permanent session
         lifetime configured on the application.
         """
-        if session.permanent:
-            return datetime.now(timezone.utc) + app.permanent_session_lifetime
-        return None
+        pass
 
     def should_set_cookie(self, app: Flask, session: SessionMixin) -> bool:
         """Used by session backends to determine if a ``Set-Cookie`` header
@@ -241,10 +239,7 @@ class SessionInterface:
 
         .. versionadded:: 0.11
         """
-
-        return session.modified or (
-            session.permanent and app.config["SESSION_REFRESH_EACH_REQUEST"]
-        )
+        pass
 
     def open_session(self, app: Flask, request: Request) -> SessionMixin | None:
         """This is called at the beginning of each request, after
@@ -278,7 +273,7 @@ def _lazy_sha1(string: bytes = b"") -> t.Any:
     SHA-1, in which case the import and use as a default would fail before the
     developer can configure something else.
     """
-    return hashlib.sha1(string)
+    pass
 
 
 class SecureCookieSessionInterface(SessionInterface):
@@ -301,85 +296,12 @@ class SecureCookieSessionInterface(SessionInterface):
     session_class = SecureCookieSession
 
     def get_signing_serializer(self, app: Flask) -> URLSafeTimedSerializer | None:
-        if not app.secret_key:
-            return None
-
-        keys: list[str | bytes] = []
-
-        if fallbacks := app.config["SECRET_KEY_FALLBACKS"]:
-            keys.extend(fallbacks)
-
-        keys.append(app.secret_key)  # itsdangerous expects current key at top
-        return URLSafeTimedSerializer(
-            keys,  # type: ignore[arg-type]
-            salt=self.salt,
-            serializer=self.serializer,
-            signer_kwargs={
-                "key_derivation": self.key_derivation,
-                "digest_method": self.digest_method,
-            },
-        )
+        pass
 
     def open_session(self, app: Flask, request: Request) -> SecureCookieSession | None:
-        s = self.get_signing_serializer(app)
-        if s is None:
-            return None
-        val = request.cookies.get(self.get_cookie_name(app))
-        if not val:
-            return self.session_class()
-        max_age = int(app.permanent_session_lifetime.total_seconds())
-        try:
-            data = s.loads(val, max_age=max_age)
-            return self.session_class(data)
-        except BadSignature:
-            return self.session_class()
+        pass
 
     def save_session(
         self, app: Flask, session: SessionMixin, response: Response
     ) -> None:
-        name = self.get_cookie_name(app)
-        domain = self.get_cookie_domain(app)
-        path = self.get_cookie_path(app)
-        secure = self.get_cookie_secure(app)
-        partitioned = self.get_cookie_partitioned(app)
-        samesite = self.get_cookie_samesite(app)
-        httponly = self.get_cookie_httponly(app)
-
-        # Add a "Vary: Cookie" header if the session was accessed at all.
-        if session.accessed:
-            response.vary.add("Cookie")
-
-        # If the session is modified to be empty, remove the cookie.
-        # If the session is empty, return without setting the cookie.
-        if not session:
-            if session.modified:
-                response.delete_cookie(
-                    name,
-                    domain=domain,
-                    path=path,
-                    secure=secure,
-                    partitioned=partitioned,
-                    samesite=samesite,
-                    httponly=httponly,
-                )
-                response.vary.add("Cookie")
-
-            return
-
-        if not self.should_set_cookie(app, session):
-            return
-
-        expires = self.get_expiration_time(app, session)
-        val = self.get_signing_serializer(app).dumps(dict(session))  # type: ignore[union-attr]
-        response.set_cookie(
-            name,
-            val,
-            expires=expires,
-            httponly=httponly,
-            domain=domain,
-            path=path,
-            secure=secure,
-            partitioned=partitioned,
-            samesite=samesite,
-        )
-        response.vary.add("Cookie")
+        pass

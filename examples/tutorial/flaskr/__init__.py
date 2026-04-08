@@ -25,7 +25,7 @@ def create_app(test_config=None):
 
     @app.route("/hello")
     def hello():
-        return "Hello, World!"
+        pass
 
     # register the database commands
     from . import db

@@ -71,10 +71,7 @@ T_template_test = t.TypeVar("T_template_test", bound=ft.TemplateTestCallable)
 
 
 def _make_timedelta(value: timedelta | int | None) -> timedelta | None:
-    if value is None or isinstance(value, timedelta):
-        return value
-
-    return timedelta(seconds=value)
+    pass
 
 
 F = t.TypeVar("F", bound=t.Callable[..., t.Any])
@@ -83,27 +80,13 @@ F = t.TypeVar("F", bound=t.Callable[..., t.Any])
 # Other methods may call the overridden method with the new ctx arg. Remove it
 # and call the method with the remaining args.
 def remove_ctx(f: F) -> F:
-    def wrapper(self: Flask, *args: t.Any, **kwargs: t.Any) -> t.Any:
-        if args and isinstance(args[0], AppContext):
-            args = args[1:]
-
-        return f(self, *args, **kwargs)
-
-    return update_wrapper(wrapper, f)  # type: ignore[return-value]
+    pass
 
 
 # The overridden method may call super().base_method without the new ctx arg.
 # Add it to the args for the call.
 def add_ctx(f: F) -> F:
-    def wrapper(self: Flask, *args: t.Any, **kwargs: t.Any) -> t.Any:
-        if not args:
-            args = (app_ctx._get_current_object(),)
-        elif not isinstance(args[0], AppContext):
-            args = (app_ctx._get_current_object(), *args)
-
-        return f(self, *args, **kwargs)
-
-    return update_wrapper(wrapper, f)  # type: ignore[return-value]
+    pass
 
 
 class Flask(App):
@@ -379,15 +362,7 @@ class Flask(App):
 
         .. versionadded:: 0.9
         """
-        value = self.config["SEND_FILE_MAX_AGE_DEFAULT"]
-
-        if value is None:
-            return None
-
-        if isinstance(value, timedelta):
-            return int(value.total_seconds())
-
-        return value  # type: ignore[no-any-return]
+        pass
 
     def send_static_file(self, filename: str) -> Response:
         """The view function used to serve files from
@@ -401,15 +376,7 @@ class Flask(App):
         .. versionadded:: 0.5
 
         """
-        if not self.has_static_folder:
-            raise RuntimeError("'static_folder' must be set to serve static_files.")
-
-        # send_file only knows to call get_send_file_max_age on the app,
-        # call it here so it works for blueprints too.
-        max_age = self.get_send_file_max_age(filename)
-        return send_from_directory(
-            t.cast(str, self.static_folder), filename, max_age=max_age
-        )
+        pass
 
     def open_resource(
         self, resource: str, mode: str = "rb", encoding: str | None = None
@@ -434,15 +401,7 @@ class Flask(App):
         .. versionchanged:: 3.1
             Added the ``encoding`` parameter.
         """
-        if mode not in {"r", "rt", "rb"}:
-            raise ValueError("Resources can only be opened for reading.")
-
-        path = os.path.join(self.root_path, resource)
-
-        if mode == "rb":
-            return open(path, mode)  # pyright: ignore
-
-        return open(path, mode, encoding=encoding)
+        pass
 
     def open_instance_resource(
         self, resource: str, mode: str = "rb", encoding: str | None = "utf-8"
@@ -459,12 +418,7 @@ class Flask(App):
         .. versionchanged:: 3.1
             Added the ``encoding`` parameter.
         """
-        path = os.path.join(self.instance_path, resource)
-
-        if "b" in mode:
-            return open(path, mode)
-
-        return open(path, mode, encoding=encoding)
+        pass
 
     def create_jinja_environment(self) -> Environment:
         """Create the Jinja environment based on :attr:`jinja_options`
@@ -478,33 +432,7 @@ class Flask(App):
 
         .. versionadded:: 0.5
         """
-        options = dict(self.jinja_options)
-
-        if "autoescape" not in options:
-            options["autoescape"] = self.select_jinja_autoescape
-
-        if "auto_reload" not in options:
-            auto_reload = self.config["TEMPLATES_AUTO_RELOAD"]
-
-            if auto_reload is None:
-                auto_reload = self.debug
-
-            options["auto_reload"] = auto_reload
-
-        rv = self.jinja_environment(self, **options)
-        rv.globals.update(
-            url_for=self.url_for,
-            get_flashed_messages=get_flashed_messages,
-            config=self.config,
-            # request, session and g are normally added with the
-            # context processor for efficiency reasons but for imported
-            # templates we also want the proxies in there.
-            request=request,
-            session=session,
-            g=g,
-        )
-        rv.policies["json.dumps_function"] = self.json.dumps
-        return rv
+        pass
 
     def create_url_adapter(self, request: Request | None) -> MapAdapter | None:
         """Creates a URL adapter for the given request. The URL adapter
@@ -526,38 +454,7 @@ class Flask(App):
 
         .. versionadded:: 0.6
         """
-        if request is not None:
-            if (trusted_hosts := self.config["TRUSTED_HOSTS"]) is not None:
-                request.trusted_hosts = trusted_hosts
-
-            # Check trusted_hosts here until bind_to_environ does.
-            request.host = get_host(request.environ, request.trusted_hosts)  # pyright: ignore
-            subdomain = None
-            server_name = self.config["SERVER_NAME"]
-
-            if self.url_map.host_matching:
-                # Don't pass SERVER_NAME, otherwise it's used and the actual
-                # host is ignored, which breaks host matching.
-                server_name = None
-            elif not self.subdomain_matching:
-                # Werkzeug doesn't implement subdomain matching yet. Until then,
-                # disable it by forcing the current subdomain to the default, or
-                # the empty string.
-                subdomain = self.url_map.default_subdomain or ""
-
-            return self.url_map.bind_to_environ(
-                request.environ, server_name=server_name, subdomain=subdomain
-            )
-
-        # Need at least SERVER_NAME to match/build outside a request.
-        if self.config["SERVER_NAME"] is not None:
-            return self.url_map.bind(
-                self.config["SERVER_NAME"],
-                script_name=self.config["APPLICATION_ROOT"],
-                url_scheme=self.config["PREFERRED_URL_SCHEME"],
-            )
-
-        return None
+        pass
 
     def raise_routing_exception(self, request: Request) -> t.NoReturn:
         """Intercept routing exceptions and possibly do something else.
@@ -575,17 +472,7 @@ class Flask(App):
         :meta private:
         :internal:
         """
-        if (
-            not self.debug
-            or not isinstance(request.routing_exception, RequestRedirect)
-            or request.routing_exception.code in {307, 308}
-            or request.method in {"GET", "HEAD", "OPTIONS"}
-        ):
-            raise request.routing_exception  # type: ignore[misc]
-
-        from .debughelpers import FormDataRoutingRedirect
-
-        raise FormDataRoutingRedirect(request)
+        pass
 
     def update_template_context(
         self, ctx: AppContext, context: dict[str, t.Any]
@@ -600,22 +487,7 @@ class Flask(App):
         :param context: the context as a dictionary that is updated in place
                         to add extra variables.
         """
-        names: t.Iterable[str | None] = (None,)
-
-        # A template may be rendered outside a request context.
-        if ctx.has_request:
-            names = chain(names, reversed(ctx.request.blueprints))
-
-        # The values passed to render_template take precedence. Keep a
-        # copy to re-apply after all context functions.
-        orig_ctx = context.copy()
-
-        for name in names:
-            if name in self.template_context_processors:
-                for func in self.template_context_processors[name]:
-                    context.update(self.ensure_sync(func)())
-
-        context.update(orig_ctx)
+        pass
 
     def make_shell_context(self) -> dict[str, t.Any]:
         """Returns the shell context for an interactive shell for this
@@ -624,10 +496,7 @@ class Flask(App):
 
         .. versionadded:: 0.11
         """
-        rv = {"app": self, "g": g}
-        for processor in self.shell_context_processors:
-            rv.update(processor())
-        return rv
+        pass
 
     def run(
         self,
@@ -692,65 +561,7 @@ class Flask(App):
             The default port is now picked from the ``SERVER_NAME``
             variable.
         """
-        # Ignore this call so that it doesn't start another server if
-        # the 'flask run' command is used.
-        if os.environ.get("FLASK_RUN_FROM_CLI") == "true":
-            if not is_running_from_reloader():
-                click.secho(
-                    " * Ignoring a call to 'app.run()' that would block"
-                    " the current 'flask' CLI command.\n"
-                    "   Only call 'app.run()' in an 'if __name__ =="
-                    ' "__main__"\' guard.',
-                    fg="red",
-                )
-
-            return
-
-        if get_load_dotenv(load_dotenv):
-            cli.load_dotenv()
-
-            # if set, env var overrides existing value
-            if "FLASK_DEBUG" in os.environ:
-                self.debug = get_debug_flag()
-
-        # debug passed to method overrides all other sources
-        if debug is not None:
-            self.debug = bool(debug)
-
-        server_name = self.config.get("SERVER_NAME")
-        sn_host = sn_port = None
-
-        if server_name:
-            sn_host, _, sn_port = server_name.partition(":")
-
-        if not host:
-            if sn_host:
-                host = sn_host
-            else:
-                host = "127.0.0.1"
-
-        if port or port == 0:
-            port = int(port)
-        elif sn_port:
-            port = int(sn_port)
-        else:
-            port = 5000
-
-        options.setdefault("use_reloader", self.debug)
-        options.setdefault("use_debugger", self.debug)
-        options.setdefault("threaded", True)
-
-        cli.show_server_banner(self.debug, self.name)
-
-        from werkzeug.serving import run_simple
-
-        try:
-            run_simple(t.cast(str, host), port, self, **options)
-        finally:
-            # reset the first request information if the development server
-            # reset normally.  This makes it possible to restart the server
-            # without reloader and that stuff from an interactive shell.
-            self._got_first_request = False
+        pass
 
     def test_client(self, use_cookies: bool = True, **kwargs: t.Any) -> FlaskClient:
         """Creates a test client for this application.  For information
@@ -803,12 +614,7 @@ class Flask(App):
            Added `**kwargs` to support passing additional keyword arguments to
            the constructor of :attr:`test_client_class`.
         """
-        cls = self.test_client_class
-        if cls is None:
-            from .testing import FlaskClient as cls
-        return cls(  # type: ignore
-            self, self.response_class, use_cookies=use_cookies, **kwargs
-        )
+        pass
 
     def test_cli_runner(self, **kwargs: t.Any) -> FlaskCliRunner:
         """Create a CLI runner for testing CLI commands.
@@ -820,12 +626,7 @@ class Flask(App):
 
         .. versionadded:: 1.0
         """
-        cls = self.test_cli_runner_class
-
-        if cls is None:
-            from .testing import FlaskCliRunner as cls
-
-        return cls(self, **kwargs)  # type: ignore
+        pass
 
     def handle_http_exception(
         self, ctx: AppContext, e: HTTPException
@@ -846,21 +647,7 @@ class Flask(App):
 
         .. versionadded:: 0.3
         """
-        # Proxy exceptions don't have error codes.  We want to always return
-        # those unchanged as errors
-        if e.code is None:
-            return e
-
-        # RoutingExceptions are used internally to trigger routing
-        # actions, such as slash redirects raising RequestRedirect. They
-        # are not raised or handled in user code.
-        if isinstance(e, RoutingException):
-            return e
-
-        handler = self._find_error_handler(e, ctx.request.blueprints)
-        if handler is None:
-            return e
-        return self.ensure_sync(handler)(e)  # type: ignore[no-any-return]
+        pass
 
     def handle_user_exception(
         self, ctx: AppContext, e: Exception
@@ -879,20 +666,7 @@ class Flask(App):
 
         .. versionadded:: 0.7
         """
-        if isinstance(e, BadRequestKeyError) and (
-            self.debug or self.config["TRAP_BAD_REQUEST_ERRORS"]
-        ):
-            e.show_exception = True
-
-        if isinstance(e, HTTPException) and not self.trap_http_exception(e):
-            return self.handle_http_exception(ctx, e)
-
-        handler = self._find_error_handler(e, ctx.request.blueprints)
-
-        if handler is None:
-            raise
-
-        return self.ensure_sync(handler)(e)  # type: ignore[no-any-return]
+        pass
 
     def handle_exception(self, ctx: AppContext, e: Exception) -> Response:
         """Handle an exception that did not have an error handler
@@ -922,30 +696,7 @@ class Flask(App):
 
         .. versionadded:: 0.3
         """
-        exc_info = sys.exc_info()
-        got_request_exception.send(self, _async_wrapper=self.ensure_sync, exception=e)
-        propagate = self.config["PROPAGATE_EXCEPTIONS"]
-
-        if propagate is None:
-            propagate = self.testing or self.debug
-
-        if propagate:
-            # Re-raise if called with an active exception, otherwise
-            # raise the passed in exception.
-            if exc_info[1] is e:
-                raise
-
-            raise e
-
-        self.log_exception(ctx, exc_info)
-        server_error: InternalServerError | ft.ResponseReturnValue
-        server_error = InternalServerError(original_exception=e)
-        handler = self._find_error_handler(server_error, ctx.request.blueprints)
-
-        if handler is not None:
-            server_error = self.ensure_sync(handler)(server_error)
-
-        return self.finalize_request(ctx, server_error, from_error_handler=True)
+        pass
 
     def log_exception(
         self,
@@ -959,9 +710,7 @@ class Flask(App):
 
         .. versionadded:: 0.8
         """
-        self.logger.error(
-            f"Exception on {ctx.request.path} [{ctx.request.method}]", exc_info=exc_info
-        )
+        pass
 
     def dispatch_request(self, ctx: AppContext) -> ft.ResponseReturnValue:
         """Does the request dispatching.  Matches the URL and returns the
@@ -973,21 +722,7 @@ class Flask(App):
            This no longer does the exception handling, this code was
            moved to the new :meth:`full_dispatch_request`.
         """
-        req = ctx.request
-
-        if req.routing_exception is not None:
-            self.raise_routing_exception(req)
-        rule: Rule = req.url_rule  # type: ignore[assignment]
-        # if we provide automatic options for this URL and the
-        # request came with the OPTIONS method, reply automatically
-        if (
-            getattr(rule, "provide_automatic_options", False)
-            and req.method == "OPTIONS"
-        ):
-            return self.make_default_options_response(ctx)
-        # otherwise dispatch to the handler for that endpoint
-        view_args: dict[str, t.Any] = req.view_args  # type: ignore[assignment]
-        return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+        pass
 
     def full_dispatch_request(self, ctx: AppContext) -> Response:
         """Dispatches the request and on top of that performs request
@@ -996,27 +731,7 @@ class Flask(App):
 
         .. versionadded:: 0.7
         """
-        if not self._got_first_request and self.should_ignore_error is not None:
-            import warnings
-
-            warnings.warn(
-                "The 'should_ignore_error' method is deprecated and will"
-                " be removed in Flask 3.3. Handle errors as needed in"
-                " teardown handlers instead.",
-                DeprecationWarning,
-                stacklevel=1,
-            )
-
-        self._got_first_request = True
-
-        try:
-            request_started.send(self, _async_wrapper=self.ensure_sync)
-            rv = self.preprocess_request(ctx)
-            if rv is None:
-                rv = self.dispatch_request(ctx)
-        except Exception as e:
-            rv = self.handle_user_exception(ctx, e)
-        return self.finalize_request(ctx, rv)
+        pass
 
     def finalize_request(
         self,
@@ -1036,19 +751,7 @@ class Flask(App):
 
         :internal:
         """
-        response = self.make_response(rv)
-        try:
-            response = self.process_response(ctx, response)
-            request_finished.send(
-                self, _async_wrapper=self.ensure_sync, response=response
-            )
-        except Exception:
-            if not from_error_handler:
-                raise
-            self.logger.exception(
-                "Request finalizing failed with an error while handling an error"
-            )
-        return response
+        pass
 
     def make_default_options_response(self, ctx: AppContext) -> Response:
         """This method is called to create the default ``OPTIONS`` response.
@@ -1057,10 +760,7 @@ class Flask(App):
 
         .. versionadded:: 0.7
         """
-        methods = ctx.url_adapter.allowed_methods()  # type: ignore[union-attr]
-        rv = self.response_class()
-        rv.allow.update(methods)
-        return rv
+        pass
 
     def ensure_sync(self, func: t.Callable[..., t.Any]) -> t.Callable[..., t.Any]:
         """Ensure that the function is synchronous for WSGI workers.
@@ -1071,10 +771,7 @@ class Flask(App):
 
         .. versionadded:: 2.0
         """
-        if iscoroutinefunction(func):
-            return self.async_to_sync(func)
-
-        return func
+        pass
 
     def async_to_sync(
         self, func: t.Callable[..., t.Coroutine[t.Any, t.Any, t.Any]]
@@ -1090,14 +787,7 @@ class Flask(App):
 
         .. versionadded:: 2.0
         """
-        try:
-            from asgiref.sync import async_to_sync as asgiref_async_to_sync
-        except ImportError:
-            raise RuntimeError(
-                "Install Flask with the 'async' extra in order to use async views."
-            ) from None
-
-        return asgiref_async_to_sync(func)
+        pass
 
     def url_for(
         self,
@@ -1156,70 +846,7 @@ class Flask(App):
         .. versionadded:: 2.2
             Moved from ``flask.url_for``, which calls this method.
         """
-        if (ctx := _cv_app.get(None)) is not None and ctx.has_request:
-            url_adapter = ctx.url_adapter
-            blueprint_name = ctx.request.blueprint
-
-            # If the endpoint starts with "." and the request matches a
-            # blueprint, the endpoint is relative to the blueprint.
-            if endpoint[:1] == ".":
-                if blueprint_name is not None:
-                    endpoint = f"{blueprint_name}{endpoint}"
-                else:
-                    endpoint = endpoint[1:]
-
-            # When in a request, generate a URL without scheme and
-            # domain by default, unless a scheme is given.
-            if _external is None:
-                _external = _scheme is not None
-        else:
-            # If called by helpers.url_for, an app context is active,
-            # use its url_adapter. Otherwise, app.url_for was called
-            # directly, build an adapter.
-            if ctx is not None:
-                url_adapter = ctx.url_adapter
-            else:
-                url_adapter = self.create_url_adapter(None)
-
-            if url_adapter is None:
-                raise RuntimeError(
-                    "Unable to build URLs outside an active request"
-                    " without 'SERVER_NAME' configured. Also configure"
-                    " 'APPLICATION_ROOT' and 'PREFERRED_URL_SCHEME' as"
-                    " needed."
-                )
-
-            # When outside a request, generate a URL with scheme and
-            # domain by default.
-            if _external is None:
-                _external = True
-
-        # It is an error to set _scheme when _external=False, in order
-        # to avoid accidental insecure URLs.
-        if _scheme is not None and not _external:
-            raise ValueError("When specifying '_scheme', '_external' must be True.")
-
-        self.inject_url_defaults(endpoint, values)
-
-        try:
-            rv = url_adapter.build(  # type: ignore[union-attr]
-                endpoint,
-                values,
-                method=_method,
-                url_scheme=_scheme,
-                force_external=_external,
-            )
-        except BuildError as error:
-            values.update(
-                _anchor=_anchor, _method=_method, _scheme=_scheme, _external=_external
-            )
-            return self.handle_url_build_error(error, endpoint, values)
-
-        if _anchor is not None:
-            _anchor = _url_quote(_anchor, safe="%!#$&'()*+,/:;=?@")
-            rv = f"{rv}#{_anchor}"
-
-        return rv
+        pass
 
     def make_response(self, rv: ft.ResponseReturnValue) -> Response:
         """Convert the return value from a view function to an instance of
@@ -1277,91 +904,7 @@ class Flask(App):
            Previously a tuple was interpreted as the arguments for the
            response object.
         """
-
-        status: int | None = None
-        headers: HeadersValue | None = None
-
-        # unpack tuple returns
-        if isinstance(rv, tuple):
-            len_rv = len(rv)
-
-            # a 3-tuple is unpacked directly
-            if len_rv == 3:
-                rv, status, headers = rv  # type: ignore[misc]
-            # decide if a 2-tuple has status or headers
-            elif len_rv == 2:
-                if isinstance(rv[1], (Headers, dict, tuple, list)):
-                    rv, headers = rv  # pyright: ignore
-                else:
-                    rv, status = rv  # type: ignore[assignment,misc]
-            # other sized tuples are not allowed
-            else:
-                raise TypeError(
-                    "The view function did not return a valid response tuple."
-                    " The tuple must have the form (body, status, headers),"
-                    " (body, status), or (body, headers)."
-                )
-
-        # the body must not be None
-        if rv is None:
-            raise TypeError(
-                f"The view function for {request.endpoint!r} did not"
-                " return a valid response. The function either returned"
-                " None or ended without a return statement."
-            )
-
-        # make sure the body is an instance of the response class
-        if not isinstance(rv, self.response_class):
-            if isinstance(rv, (str, bytes, bytearray)) or isinstance(rv, cabc.Iterator):
-                # let the response class set the status and headers instead of
-                # waiting to do it manually, so that the class can handle any
-                # special logic
-                rv = self.response_class(
-                    rv,  # pyright: ignore
-                    status=status,
-                    headers=headers,  # type: ignore[arg-type]
-                )
-                status = headers = None
-            elif isinstance(rv, (dict, list)):
-                rv = self.json.response(rv)
-            elif isinstance(rv, BaseResponse) or callable(rv):
-                # evaluate a WSGI callable, or coerce a different response
-                # class to the correct type
-                try:
-                    rv = self.response_class.force_type(
-                        rv,  # type: ignore[arg-type]
-                        request.environ,
-                    )
-                except TypeError as e:
-                    raise TypeError(
-                        f"{e}\nThe view function did not return a valid"
-                        " response. The return type must be a string,"
-                        " dict, list, tuple with headers or status,"
-                        " Response instance, or WSGI callable, but it"
-                        f" was a {type(rv).__name__}."
-                    ).with_traceback(sys.exc_info()[2]) from None
-            else:
-                raise TypeError(
-                    "The view function did not return a valid"
-                    " response. The return type must be a string,"
-                    " dict, list, tuple with headers or status,"
-                    " Response instance, or WSGI callable, but it was a"
-                    f" {type(rv).__name__}."
-                )
-
-        rv = t.cast(Response, rv)
-        # prefer the status if it was provided
-        if status is not None:
-            if isinstance(status, (str, bytes, bytearray)):
-                rv.status = status
-            else:
-                rv.status_code = status
-
-        # extend existing headers with provided headers
-        if headers:
-            rv.headers.update(headers)
-
-        return rv
+        pass
 
     def preprocess_request(self, ctx: AppContext) -> ft.ResponseReturnValue | None:
         """Called before the request is dispatched. Calls
@@ -1373,23 +916,7 @@ class Flask(App):
         value is handled as if it was the return value from the view, and
         further request handling is stopped.
         """
-        req = ctx.request
-        names = (None, *reversed(req.blueprints))
-
-        for name in names:
-            if name in self.url_value_preprocessors:
-                for url_func in self.url_value_preprocessors[name]:
-                    url_func(req.endpoint, req.view_args)
-
-        for name in names:
-            if name in self.before_request_funcs:
-                for before_func in self.before_request_funcs[name]:
-                    rv = self.ensure_sync(before_func)()
-
-                    if rv is not None:
-                        return rv  # type: ignore[no-any-return]
-
-        return None
+        pass
 
     def process_response(self, ctx: AppContext, response: Response) -> Response:
         """Can be overridden in order to modify the response object
@@ -1404,18 +931,7 @@ class Flask(App):
         :return: a new response object or the same, has to be an
                  instance of :attr:`response_class`.
         """
-        for func in ctx._after_request_functions:
-            response = self.ensure_sync(func)(response)
-
-        for name in chain(ctx.request.blueprints, (None,)):
-            if name in self.after_request_funcs:
-                for func in reversed(self.after_request_funcs[name]):
-                    response = self.ensure_sync(func)(response)
-
-        if not self.session_interface.is_null_session(ctx._get_session()):
-            self.session_interface.save_session(self, ctx._get_session(), response)
-
-        return response
+        pass
 
     def do_teardown_request(
         self, ctx: AppContext, exc: BaseException | None = None
@@ -1437,18 +953,7 @@ class Flask(App):
         .. versionchanged:: 0.9
             Added the ``exc`` argument.
         """
-        collect_errors = _CollectErrors()
-
-        for name in chain(ctx.request.blueprints, (None,)):
-            if name in self.teardown_request_funcs:
-                for func in reversed(self.teardown_request_funcs[name]):
-                    with collect_errors:
-                        self.ensure_sync(func)(exc)
-
-        with collect_errors:
-            request_tearing_down.send(self, _async_wrapper=self.ensure_sync, exc=exc)
-
-        collect_errors.raise_any("Errors during request teardown")
+        pass
 
     def do_teardown_appcontext(
         self, ctx: AppContext, exc: BaseException | None = None
@@ -1467,16 +972,7 @@ class Flask(App):
 
         .. versionadded:: 0.9
         """
-        collect_errors = _CollectErrors()
-
-        for func in reversed(self.teardown_appcontext_funcs):
-            with collect_errors:
-                self.ensure_sync(func)(exc)
-
-        with collect_errors:
-            appcontext_tearing_down.send(self, _async_wrapper=self.ensure_sync, exc=exc)
-
-        collect_errors.raise_any("Errors during app teardown")
+        pass
 
     def app_context(self) -> AppContext:
         """Create an :class:`.AppContext`. When the context is pushed,
@@ -1496,7 +992,7 @@ class Flask(App):
 
         .. versionadded:: 0.9
         """
-        return AppContext(self)
+        pass
 
     def request_context(self, environ: WSGIEnvironment) -> AppContext:
         """Create an :class:`.AppContext` with request information representing
@@ -1512,7 +1008,7 @@ class Flask(App):
 
         :param environ: A WSGI environment.
         """
-        return AppContext.from_environ(self, environ)
+        pass
 
     def test_request_context(self, *args: t.Any, **kwargs: t.Any) -> AppContext:
         """Create an :class:`.AppContext` with request information created from
@@ -1552,16 +1048,7 @@ class Flask(App):
         :param kwargs: Other keyword arguments passed to
             :class:`~werkzeug.test.EnvironBuilder`.
         """
-        from .testing import EnvironBuilder
-
-        builder = EnvironBuilder(self, *args, **kwargs)
-
-        try:
-            environ = builder.get_environ()
-        finally:
-            builder.close()
-
-        return self.request_context(environ)
+        pass
 
     def wsgi_app(
         self, environ: WSGIEnvironment, start_response: StartResponse
@@ -1589,31 +1076,7 @@ class Flask(App):
             a list of headers, and an optional exception context to
             start the response.
         """
-        ctx = self.request_context(environ)
-        error: BaseException | None = None
-        try:
-            try:
-                ctx.push()
-                response = self.full_dispatch_request(ctx)
-            except Exception as e:
-                error = e
-                response = self.handle_exception(ctx, e)
-            except:
-                error = sys.exc_info()[1]
-                raise
-            return response(environ, start_response)
-        finally:
-            if "werkzeug.debug.preserve_context" in environ:
-                environ["werkzeug.debug.preserve_context"](ctx)
-
-            if (
-                error is not None
-                and self.should_ignore_error is not None
-                and self.should_ignore_error(error)
-            ):
-                error = None
-
-            ctx.pop(error)
+        pass
 
     def __call__(
         self, environ: WSGIEnvironment, start_response: StartResponse

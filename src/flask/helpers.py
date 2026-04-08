@@ -29,8 +29,7 @@ def get_debug_flag() -> bool:
     """Get whether debug mode should be enabled for the app, indicated by the
     :envvar:`FLASK_DEBUG` environment variable. The default is ``False``.
     """
-    val = os.environ.get("FLASK_DEBUG")
-    return bool(val and val.lower() not in {"0", "false", "no"})
+    pass
 
 
 def get_load_dotenv(default: bool = True) -> bool:
@@ -40,12 +39,7 @@ def get_load_dotenv(default: bool = True) -> bool:
 
     :param default: What to return if the env var isn't set.
     """
-    val = os.environ.get("FLASK_SKIP_DOTENV")
-
-    if not val:
-        return default
-
-    return val.lower() in ("0", "false", "no")
+    pass
 
 
 @t.overload
@@ -113,39 +107,7 @@ def stream_with_context(
 
     .. versionadded:: 0.9
     """
-    try:
-        gen = iter(generator_or_function)  # type: ignore[arg-type]
-    except TypeError:
-
-        def decorator(*args: t.Any, **kwargs: t.Any) -> t.Any:
-            gen = generator_or_function(*args, **kwargs)  # type: ignore[operator]
-            return stream_with_context(gen)
-
-        return update_wrapper(decorator, generator_or_function)  # type: ignore[arg-type]
-
-    def generator() -> t.Iterator[t.AnyStr]:
-        if (ctx := _cv_app.get(None)) is None:
-            raise RuntimeError(
-                "'stream_with_context' can only be used when a request"
-                " context is active, such as in a view function."
-            )
-
-        with ctx:
-            yield None  # type: ignore[misc]
-
-            try:
-                yield from gen
-            finally:
-                # Clean up in case the user wrapped a WSGI iterator.
-                if hasattr(gen, "close"):
-                    gen.close()
-
-    # Execute the generator to the sentinel value. This captures the current
-    # context and pushes it to preserve it. Further iteration will yield from
-    # the original iterator.
-    wrapped_g = generator()
-    next(wrapped_g)
-    return wrapped_g
+    pass
 
 
 def make_response(*args: t.Any) -> Response:
@@ -190,11 +152,7 @@ def make_response(*args: t.Any) -> Response:
 
     .. versionadded:: 0.6
     """
-    if not args:
-        return current_app.response_class()
-    if len(args) == 1:
-        args = args[0]
-    return current_app.make_response(args)
+    pass
 
 
 def url_for(
@@ -241,14 +199,7 @@ def url_for(
     .. versionchanged:: 0.9
        Calls ``app.handle_url_build_error`` on build errors.
     """
-    return current_app.url_for(
-        endpoint,
-        _anchor=_anchor,
-        _method=_method,
-        _scheme=_scheme,
-        _external=_external,
-        **values,
-    )
+    pass
 
 
 def redirect(
@@ -272,10 +223,7 @@ def redirect(
         Calls ``current_app.redirect`` if available instead of always
         using Werkzeug's default ``redirect``.
     """
-    if (ctx := _cv_app.get(None)) is not None:
-        return ctx.app.redirect(location, code=code)
-
-    return _wz_redirect(location, code=code, Response=Response)
+    pass
 
 
 def abort(code: int | BaseResponse, *args: t.Any, **kwargs: t.Any) -> t.NoReturn:
@@ -295,10 +243,7 @@ def abort(code: int | BaseResponse, *args: t.Any, **kwargs: t.Any) -> t.NoReturn
         Calls ``current_app.aborter`` if available instead of always
         using Werkzeug's default ``abort``.
     """
-    if (ctx := _cv_app.get(None)) is not None:
-        ctx.app.aborter(code, *args, **kwargs)
-
-    _wz_abort(code, *args, **kwargs)
+    pass
 
 
 def get_template_attribute(template_name: str, attribute: str) -> t.Any:
@@ -320,7 +265,7 @@ def get_template_attribute(template_name: str, attribute: str) -> t.Any:
     :param template_name: the name of the template
     :param attribute: the name of the variable of macro to access
     """
-    return getattr(current_app.jinja_env.get_template(template_name).module, attribute)
+    pass
 
 
 def flash(message: str, category: str = "message") -> None:
@@ -338,23 +283,7 @@ def flash(message: str, category: str = "message") -> None:
                      messages and ``'warning'`` for warnings.  However any
                      kind of string can be used as category.
     """
-    # Original implementation:
-    #
-    #     session.setdefault('_flashes', []).append((category, message))
-    #
-    # This assumed that changes made to mutable structures in the session are
-    # always in sync with the session object, which is not true for session
-    # implementations that use external storage for keeping their keys/values.
-    flashes = session.get("_flashes", [])
-    flashes.append((category, message))
-    session["_flashes"] = flashes
-    app = current_app._get_current_object()
-    message_flashed.send(
-        app,
-        _async_wrapper=app.ensure_sync,
-        message=message,
-        category=category,
-    )
+    pass
 
 
 def get_flashed_messages(
@@ -388,30 +317,11 @@ def get_flashed_messages(
     :param category_filter: filter of categories to limit return values.  Only
                             categories in the list will be returned.
     """
-    flashes = app_ctx._flashes
-    if flashes is None:
-        flashes = session.pop("_flashes") if "_flashes" in session else []
-        app_ctx._flashes = flashes
-    if category_filter:
-        flashes = list(filter(lambda f: f[0] in category_filter, flashes))
-    if not with_categories:
-        return [x[1] for x in flashes]
-    return flashes
+    pass
 
 
 def _prepare_send_file_kwargs(**kwargs: t.Any) -> dict[str, t.Any]:
-    ctx = app_ctx._get_current_object()
-
-    if kwargs.get("max_age") is None:
-        kwargs["max_age"] = ctx.app.get_send_file_max_age
-
-    kwargs.update(
-        environ=ctx.request.environ,
-        use_x_sendfile=ctx.app.config["USE_X_SENDFILE"],
-        response_class=ctx.app.response_class,
-        _root_path=ctx.app.root_path,
-    )
-    return kwargs
+    pass
 
 
 def send_file(
@@ -525,19 +435,7 @@ def send_file(
 
     .. versionadded:: 0.2
     """
-    return werkzeug.utils.send_file(  # type: ignore[return-value]
-        **_prepare_send_file_kwargs(
-            path_or_file=path_or_file,
-            environ=request.environ,
-            mimetype=mimetype,
-            as_attachment=as_attachment,
-            download_name=download_name,
-            conditional=conditional,
-            etag=etag,
-            last_modified=last_modified,
-            max_age=max_age,
-        )
-    )
+    pass
 
 
 def send_from_directory(
@@ -579,9 +477,7 @@ def send_from_directory(
 
     .. versionadded:: 0.5
     """
-    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
-        directory, path, **_prepare_send_file_kwargs(**kwargs)
-    )
+    pass
 
 
 def get_root_path(import_name: str) -> str:
@@ -593,62 +489,12 @@ def get_root_path(import_name: str) -> str:
 
     :meta private:
     """
-    # Module already imported and has a file attribute. Use that first.
-    mod = sys.modules.get(import_name)
-
-    if mod is not None and hasattr(mod, "__file__") and mod.__file__ is not None:
-        return os.path.dirname(os.path.abspath(mod.__file__))
-
-    # Next attempt: check the loader.
-    try:
-        spec = importlib.util.find_spec(import_name)
-
-        if spec is None:
-            raise ValueError
-    except (ImportError, ValueError):
-        loader = None
-    else:
-        loader = spec.loader
-
-    # Loader does not exist or we're referring to an unloaded main
-    # module or a main module without path (interactive sessions), go
-    # with the current working directory.
-    if loader is None:
-        return os.getcwd()
-
-    if hasattr(loader, "get_filename"):
-        filepath = loader.get_filename(import_name)  # pyright: ignore
-    else:
-        # Fall back to imports.
-        __import__(import_name)
-        mod = sys.modules[import_name]
-        filepath = getattr(mod, "__file__", None)
-
-        # If we don't have a file path it might be because it is a
-        # namespace package. In this case pick the root path from the
-        # first module that is contained in the package.
-        if filepath is None:
-            raise RuntimeError(
-                "No root path can be found for the provided module"
-                f" {import_name!r}. This can happen because the module"
-                " came from an import hook that does not provide file"
-                " name information or because it's a namespace package."
-                " In this case the root path needs to be explicitly"
-                " provided."
-            )
-
-    # filepath is import_name.py for a module, or __init__.py for a package.
-    return os.path.dirname(os.path.abspath(filepath))  # type: ignore[no-any-return]
+    pass
 
 
 @cache
 def _split_blueprint_path(name: str) -> list[str]:
-    out: list[str] = [name]
-
-    if "." in name:
-        out.extend(_split_blueprint_path(name.rpartition(".")[0]))
-
-    return out
+    pass
 
 
 class _CollectErrors:
@@ -675,8 +521,4 @@ class _CollectErrors:
 
     def raise_any(self, message: str) -> None:
         """Raise if any errors were collected."""
-        if self.errors:
-            if sys.version_info >= (3, 11):
-                raise BaseExceptionGroup(message, self.errors)  # noqa: F821
-            else:
-                raise self.errors[0]
+        pass

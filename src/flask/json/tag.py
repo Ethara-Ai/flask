@@ -87,7 +87,7 @@ class JSONTag:
     def tag(self, value: t.Any) -> dict[str, t.Any]:
         """Convert the value to a valid JSON type and add the tag structure
         around it."""
-        return {self.key: self.to_json(value)}
+        pass
 
 
 class TagDict(JSONTag):
@@ -101,31 +101,25 @@ class TagDict(JSONTag):
     key = " di"
 
     def check(self, value: t.Any) -> bool:
-        return (
-            isinstance(value, dict)
-            and len(value) == 1
-            and next(iter(value)) in self.serializer.tags
-        )
+        pass
 
     def to_json(self, value: t.Any) -> t.Any:
-        key = next(iter(value))
-        return {f"{key}__": self.serializer.tag(value[key])}
+        pass
 
     def to_python(self, value: t.Any) -> t.Any:
-        key = next(iter(value))
-        return {key[:-2]: value[key]}
+        pass
 
 
 class PassDict(JSONTag):
     __slots__ = ()
 
     def check(self, value: t.Any) -> bool:
-        return isinstance(value, dict)
+        pass
 
     def to_json(self, value: t.Any) -> t.Any:
         # JSON objects may only have string keys, so don't bother tagging the
         # key here.
-        return {k: self.serializer.tag(v) for k, v in value.items()}
+        pass
 
     tag = to_json
 
@@ -135,23 +129,23 @@ class TagTuple(JSONTag):
     key = " t"
 
     def check(self, value: t.Any) -> bool:
-        return isinstance(value, tuple)
+        pass
 
     def to_json(self, value: t.Any) -> t.Any:
-        return [self.serializer.tag(item) for item in value]
+        pass
 
     def to_python(self, value: t.Any) -> t.Any:
-        return tuple(value)
+        pass
 
 
 class PassList(JSONTag):
     __slots__ = ()
 
     def check(self, value: t.Any) -> bool:
-        return isinstance(value, list)
+        pass
 
     def to_json(self, value: t.Any) -> t.Any:
-        return [self.serializer.tag(item) for item in value]
+        pass
 
     tag = to_json
 
@@ -161,13 +155,13 @@ class TagBytes(JSONTag):
     key = " b"
 
     def check(self, value: t.Any) -> bool:
-        return isinstance(value, bytes)
+        pass
 
     def to_json(self, value: t.Any) -> t.Any:
-        return b64encode(value).decode("ascii")
+        pass
 
     def to_python(self, value: t.Any) -> t.Any:
-        return b64decode(value)
+        pass
 
 
 class TagMarkup(JSONTag):
@@ -179,13 +173,13 @@ class TagMarkup(JSONTag):
     key = " m"
 
     def check(self, value: t.Any) -> bool:
-        return callable(getattr(value, "__html__", None))
+        pass
 
     def to_json(self, value: t.Any) -> t.Any:
-        return str(value.__html__())
+        pass
 
     def to_python(self, value: t.Any) -> t.Any:
-        return Markup(value)
+        pass
 
 
 class TagUUID(JSONTag):
@@ -193,13 +187,13 @@ class TagUUID(JSONTag):
     key = " u"
 
     def check(self, value: t.Any) -> bool:
-        return isinstance(value, UUID)
+        pass
 
     def to_json(self, value: t.Any) -> t.Any:
-        return value.hex
+        pass
 
     def to_python(self, value: t.Any) -> t.Any:
-        return UUID(value)
+        pass
 
 
 class TagDateTime(JSONTag):
@@ -207,13 +201,13 @@ class TagDateTime(JSONTag):
     key = " d"
 
     def check(self, value: t.Any) -> bool:
-        return isinstance(value, datetime)
+        pass
 
     def to_json(self, value: t.Any) -> t.Any:
-        return http_date(value)
+        pass
 
     def to_python(self, value: t.Any) -> t.Any:
-        return parse_date(value)
+        pass
 
 
 class TaggedJSONSerializer:
@@ -272,56 +266,23 @@ class TaggedJSONSerializer:
         :raise KeyError: if the tag key is already registered and ``force`` is
             not true.
         """
-        tag = tag_class(self)
-        key = tag.key
-
-        if key:
-            if not force and key in self.tags:
-                raise KeyError(f"Tag '{key}' is already registered.")
-
-            self.tags[key] = tag
-
-        if index is None:
-            self.order.append(tag)
-        else:
-            self.order.insert(index, tag)
+        pass
 
     def tag(self, value: t.Any) -> t.Any:
         """Convert a value to a tagged representation if necessary."""
-        for tag in self.order:
-            if tag.check(value):
-                return tag.tag(value)
-
-        return value
+        pass
 
     def untag(self, value: dict[str, t.Any]) -> t.Any:
         """Convert a tagged representation back to the original type."""
-        if len(value) != 1:
-            return value
-
-        key = next(iter(value))
-
-        if key not in self.tags:
-            return value
-
-        return self.tags[key].to_python(value[key])
+        pass
 
     def _untag_scan(self, value: t.Any) -> t.Any:
-        if isinstance(value, dict):
-            # untag each item recursively
-            value = {k: self._untag_scan(v) for k, v in value.items()}
-            # untag the dict itself
-            value = self.untag(value)
-        elif isinstance(value, list):
-            # untag each item recursively
-            value = [self._untag_scan(item) for item in value]
-
-        return value
+        pass
 
     def dumps(self, value: t.Any) -> str:
         """Tag the value and dump it to a compact JSON string."""
-        return dumps(self.tag(value), separators=(",", ":"))
+        pass
 
     def loads(self, value: str) -> t.Any:
         """Load data from a JSON string and deserialized any tagged objects."""
-        return self._untag_scan(loads(value))
+        pass

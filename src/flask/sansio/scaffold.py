@@ -40,13 +40,7 @@ T_route = t.TypeVar("T_route", bound=ft.RouteCallable)
 
 
 def setupmethod(f: F) -> F:
-    f_name = f.__name__
-
-    def wrapper_func(self: Scaffold, *args: t.Any, **kwargs: t.Any) -> t.Any:
-        self._check_setup_finished(f_name)
-        return f(self, *args, **kwargs)
-
-    return t.cast(F, update_wrapper(wrapper_func, f))
+    pass
 
 
 class Scaffold:
@@ -225,17 +219,11 @@ class Scaffold:
         """The absolute path to the configured static folder. ``None``
         if no static folder is set.
         """
-        if self._static_folder is not None:
-            return os.path.join(self.root_path, self._static_folder)
-        else:
-            return None
+        pass
 
     @static_folder.setter
     def static_folder(self, value: str | os.PathLike[str] | None) -> None:
-        if value is not None:
-            value = os.fspath(value).rstrip(r"\/")
-
-        self._static_folder = value
+        pass
 
     @property
     def has_static_folder(self) -> bool:
@@ -243,7 +231,7 @@ class Scaffold:
 
         .. versionadded:: 0.5
         """
-        return self.static_folder is not None
+        pass
 
     @property
     def static_url_path(self) -> str | None:
@@ -252,21 +240,11 @@ class Scaffold:
         If it was not configured during init, it is derived from
         :attr:`static_folder`.
         """
-        if self._static_url_path is not None:
-            return self._static_url_path
-
-        if self.static_folder is not None:
-            basename = os.path.basename(self.static_folder)
-            return f"/{basename}".rstrip("/")
-
-        return None
+        pass
 
     @static_url_path.setter
     def static_url_path(self, value: str | None) -> None:
-        if value is not None:
-            value = value.rstrip("/")
-
-        self._static_url_path = value
+        pass
 
     @cached_property
     def jinja_loader(self) -> BaseLoader | None:
@@ -276,10 +254,7 @@ class Scaffold:
 
         .. versionadded:: 0.5
         """
-        if self.template_folder is not None:
-            return FileSystemLoader(os.path.join(self.root_path, self.template_folder))
-        else:
-            return None
+        pass
 
     def _method_route(
         self,
@@ -287,10 +262,7 @@ class Scaffold:
         rule: str,
         options: dict[str, t.Any],
     ) -> t.Callable[[T_route], T_route]:
-        if "methods" in options:
-            raise TypeError("Use the 'route' decorator to use the 'methods' argument.")
-
-        return self.route(rule, methods=[method], **options)
+        pass
 
     @setupmethod
     def get(self, rule: str, **options: t.Any) -> t.Callable[[T_route], T_route]:
@@ -314,7 +286,7 @@ class Scaffold:
 
         .. versionadded:: 2.0
         """
-        return self._method_route("PUT", rule, options)
+        pass
 
     @setupmethod
     def delete(self, rule: str, **options: t.Any) -> t.Callable[[T_route], T_route]:
@@ -322,7 +294,7 @@ class Scaffold:
 
         .. versionadded:: 2.0
         """
-        return self._method_route("DELETE", rule, options)
+        pass
 
     @setupmethod
     def patch(self, rule: str, **options: t.Any) -> t.Callable[[T_route], T_route]:
@@ -330,7 +302,7 @@ class Scaffold:
 
         .. versionadded:: 2.0
         """
-        return self._method_route("PATCH", rule, options)
+        pass
 
     @setupmethod
     def route(self, rule: str, **options: t.Any) -> t.Callable[[T_route], T_route]:
@@ -358,9 +330,7 @@ class Scaffold:
         """
 
         def decorator(f: T_route) -> T_route:
-            endpoint = options.pop("endpoint", None)
-            self.add_url_rule(rule, endpoint, f, **options)
-            return f
+            pass
 
         return decorator
 
@@ -449,12 +419,7 @@ class Scaffold:
         :param endpoint: The endpoint name to associate with the view
             function.
         """
-
-        def decorator(f: F) -> F:
-            self.view_functions[endpoint] = f
-            return f
-
-        return decorator
+        pass
 
     @setupmethod
     def before_request(self, f: T_before_request) -> T_before_request:
@@ -480,8 +445,7 @@ class Scaffold:
         every request that the blueprint handles. To register with a blueprint and
         execute before every request, use :meth:`.Blueprint.before_app_request`.
         """
-        self.before_request_funcs.setdefault(None, []).append(f)
-        return f
+        pass
 
     @setupmethod
     def after_request(self, f: T_after_request) -> T_after_request:
@@ -501,8 +465,7 @@ class Scaffold:
         every request that the blueprint handles. To register with a blueprint and
         execute after every request, use :meth:`.Blueprint.after_app_request`.
         """
-        self.after_request_funcs.setdefault(None, []).append(f)
-        return f
+        pass
 
     @setupmethod
     def teardown_request(self, f: T_teardown) -> T_teardown:
@@ -535,8 +498,7 @@ class Scaffold:
         every request that the blueprint handles. To register with a blueprint and
         execute after every request, use :meth:`.Blueprint.teardown_app_request`.
         """
-        self.teardown_request_funcs.setdefault(None, []).append(f)
-        return f
+        pass
 
     @setupmethod
     def context_processor(
@@ -552,8 +514,7 @@ class Scaffold:
         for templates rendered from the blueprint's views. To register with a blueprint
         and affect every template, use :meth:`.Blueprint.app_context_processor`.
         """
-        self.template_context_processors[None].append(f)
-        return f
+        pass
 
     @setupmethod
     def url_value_preprocessor(
@@ -577,8 +538,7 @@ class Scaffold:
         requests that the blueprint handles. To register with a blueprint and affect
         every request, use :meth:`.Blueprint.app_url_value_preprocessor`.
         """
-        self.url_value_preprocessors[None].append(f)
-        return f
+        pass
 
     @setupmethod
     def url_defaults(self, f: T_url_defaults) -> T_url_defaults:
@@ -591,8 +551,7 @@ class Scaffold:
         requests that the blueprint handles. To register with a blueprint and affect
         every request, use :meth:`.Blueprint.app_url_defaults`.
         """
-        self.url_default_functions[None].append(f)
-        return f
+        pass
 
     @setupmethod
     def errorhandler(
@@ -633,8 +592,7 @@ class Scaffold:
         """
 
         def decorator(f: T_error_handler) -> T_error_handler:
-            self.register_error_handler(code_or_exception, f)
-            return f
+            pass
 
         return decorator
 
@@ -650,8 +608,7 @@ class Scaffold:
 
         .. versionadded:: 0.7
         """
-        exc_class, code = self._get_exc_class_and_code(code_or_exception)
-        self.error_handler_spec[None][code][exc_class] = f
+        pass
 
     @staticmethod
     def _get_exc_class_and_code(
@@ -664,91 +621,19 @@ class Scaffold:
         :param exc_class_or_code: Any exception class, or an HTTP status
             code as an integer.
         """
-        exc_class: type[Exception]
-
-        if isinstance(exc_class_or_code, int):
-            try:
-                exc_class = default_exceptions[exc_class_or_code]
-            except KeyError:
-                raise ValueError(
-                    f"'{exc_class_or_code}' is not a recognized HTTP"
-                    " error code. Use a subclass of HTTPException with"
-                    " that code instead."
-                ) from None
-        else:
-            exc_class = exc_class_or_code
-
-        if isinstance(exc_class, Exception):
-            raise TypeError(
-                f"{exc_class!r} is an instance, not a class. Handlers"
-                " can only be registered for Exception classes or HTTP"
-                " error codes."
-            )
-
-        if not issubclass(exc_class, Exception):
-            raise ValueError(
-                f"'{exc_class.__name__}' is not a subclass of Exception."
-                " Handlers can only be registered for Exception classes"
-                " or HTTP error codes."
-            )
-
-        if issubclass(exc_class, HTTPException):
-            return exc_class, exc_class.code
-        else:
-            return exc_class, None
+        pass
 
 
 def _endpoint_from_view_func(view_func: ft.RouteCallable) -> str:
     """Internal helper that returns the default endpoint for a given
     function.  This always is the function name.
     """
-    assert view_func is not None, "expected view func if endpoint is not provided."
-    return view_func.__name__
+    pass
 
 
 def _find_package_path(import_name: str) -> str:
     """Find the path that contains the package or module."""
-    root_mod_name, _, _ = import_name.partition(".")
-
-    try:
-        root_spec = importlib.util.find_spec(root_mod_name)
-
-        if root_spec is None:
-            raise ValueError("not found")
-    except (ImportError, ValueError):
-        # ImportError: the machinery told us it does not exist
-        # ValueError:
-        #    - the module name was invalid
-        #    - the module name is __main__
-        #    - we raised `ValueError` due to `root_spec` being `None`
-        return os.getcwd()
-
-    if root_spec.submodule_search_locations:
-        if root_spec.origin is None or root_spec.origin == "namespace":
-            # namespace package
-            package_spec = importlib.util.find_spec(import_name)
-
-            if package_spec is not None and package_spec.submodule_search_locations:
-                # Pick the path in the namespace that contains the submodule.
-                package_path = pathlib.Path(
-                    os.path.commonpath(package_spec.submodule_search_locations)
-                )
-                search_location = next(
-                    location
-                    for location in root_spec.submodule_search_locations
-                    if package_path.is_relative_to(location)
-                )
-            else:
-                # Pick the first path.
-                search_location = root_spec.submodule_search_locations[0]
-
-            return os.path.dirname(search_location)
-        else:
-            # package with __init__.py
-            return os.path.dirname(os.path.dirname(root_spec.origin))
-    else:
-        # module
-        return os.path.dirname(root_spec.origin)  # type: ignore[type-var, return-value]
+    pass
 
 
 def find_package(import_name: str) -> tuple[str | None, str]:
@@ -764,29 +649,4 @@ def find_package(import_name: str) -> tuple[str | None, str]:
     for import. If the package is not installed, it's assumed that the
     package was imported from the current working directory.
     """
-    package_path = _find_package_path(import_name)
-    py_prefix = os.path.abspath(sys.prefix)
-
-    # installed to the system
-    if pathlib.PurePath(package_path).is_relative_to(py_prefix):
-        return py_prefix, package_path
-
-    site_parent, site_folder = os.path.split(package_path)
-
-    # installed to a virtualenv
-    if site_folder.lower() == "site-packages":
-        parent, folder = os.path.split(site_parent)
-
-        # Windows (prefix/lib/site-packages)
-        if folder.lower() == "lib":
-            return parent, package_path
-
-        # Unix (prefix/lib/pythonX.Y/site-packages)
-        if os.path.basename(parent).lower() == "lib":
-            return os.path.dirname(parent), package_path
-
-        # something else (prefix/site-packages)
-        return site_parent, package_path
-
-    # not installed
-    return None, package_path
+    pass

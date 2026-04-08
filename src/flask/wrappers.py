@@ -77,17 +77,11 @@ class Request(RequestBase):
         .. versionchanged:: 0.6
             This is configurable through Flask config.
         """
-        if self._max_content_length is not None:
-            return self._max_content_length
-
-        if not current_app:
-            return super().max_content_length
-
-        return current_app.config["MAX_CONTENT_LENGTH"]  # type: ignore[no-any-return]
+        pass
 
     @max_content_length.setter
     def max_content_length(self, value: int | None) -> None:
-        self._max_content_length = value
+        pass
 
     @property
     def max_form_memory_size(self) -> int | None:
@@ -104,17 +98,11 @@ class Request(RequestBase):
         .. versionchanged:: 3.1
             This is configurable through Flask config.
         """
-        if self._max_form_memory_size is not None:
-            return self._max_form_memory_size
-
-        if not current_app:
-            return super().max_form_memory_size
-
-        return current_app.config["MAX_FORM_MEMORY_SIZE"]  # type: ignore[no-any-return]
+        pass
 
     @max_form_memory_size.setter
     def max_form_memory_size(self, value: int | None) -> None:
-        self._max_form_memory_size = value
+        pass
 
     @property  # type: ignore[override]
     def max_form_parts(self) -> int | None:
@@ -131,17 +119,11 @@ class Request(RequestBase):
         .. versionchanged:: 3.1
             This is configurable through Flask config.
         """
-        if self._max_form_parts is not None:
-            return self._max_form_parts
-
-        if not current_app:
-            return super().max_form_parts
-
-        return current_app.config["MAX_FORM_PARTS"]  # type: ignore[no-any-return]
+        pass
 
     @max_form_parts.setter
     def max_form_parts(self, value: int | None) -> None:
-        self._max_form_parts = value
+        pass
 
     @property
     def endpoint(self) -> str | None:
@@ -153,10 +135,7 @@ class Request(RequestBase):
         This in combination with :attr:`view_args` can be used to
         reconstruct the same URL or a modified URL.
         """
-        if self.url_rule is not None:
-            return self.url_rule.endpoint  # type: ignore[no-any-return]
-
-        return None
+        pass
 
     @property
     def blueprint(self) -> str | None:
@@ -170,12 +149,7 @@ class Request(RequestBase):
         created with. It may have been nested, or registered with a
         different name.
         """
-        endpoint = self.endpoint
-
-        if endpoint is not None and "." in endpoint:
-            return endpoint.rpartition(".")[0]
-
-        return None
+        pass
 
     @property
     def blueprints(self) -> list[str]:
@@ -187,36 +161,13 @@ class Request(RequestBase):
 
         .. versionadded:: 2.0.1
         """
-        name = self.blueprint
-
-        if name is None:
-            return []
-
-        return _split_blueprint_path(name)
+        pass
 
     def _load_form_data(self) -> None:
-        super()._load_form_data()
-
-        # In debug mode we're replacing the files multidict with an ad-hoc
-        # subclass that raises a different error for key errors.
-        if (
-            current_app
-            and current_app.debug
-            and self.mimetype != "multipart/form-data"
-            and not self.files
-        ):
-            from .debughelpers import attach_enctype_error_multidict
-
-            attach_enctype_error_multidict(self)
+        pass
 
     def on_json_loading_failed(self, e: ValueError | None) -> t.Any:
-        try:
-            return super().on_json_loading_failed(e)
-        except BadRequest as ebr:
-            if current_app and current_app.debug:
-                raise
-
-            raise BadRequest() from ebr
+        pass
 
 
 class Response(ResponseBase):
@@ -250,8 +201,4 @@ class Response(ResponseBase):
         See :attr:`~werkzeug.wrappers.Response.max_cookie_size` in
         Werkzeug's docs.
         """
-        if current_app:
-            return current_app.config["MAX_COOKIE_SIZE"]  # type: ignore[no-any-return]
-
-        # return Werkzeug's default when not in an app context
-        return super().max_cookie_size
+        pass

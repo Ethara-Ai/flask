@@ -54,7 +54,7 @@ class JSONProvider:
             encoding to be valid JSON.
         :param kwargs: May be passed to the underlying JSON library.
         """
-        fp.write(self.dumps(obj, **kwargs))
+        pass
 
     def loads(self, s: str | bytes, **kwargs: t.Any) -> t.Any:
         """Deserialize data as JSON.
@@ -70,21 +70,12 @@ class JSONProvider:
         :param fp: A file opened for reading text or UTF-8 bytes.
         :param kwargs: May be passed to the underlying JSON library.
         """
-        return self.loads(fp.read(), **kwargs)
+        pass
 
     def _prepare_response_obj(
         self, args: tuple[t.Any, ...], kwargs: dict[str, t.Any]
     ) -> t.Any:
-        if args and kwargs:
-            raise TypeError("app.json.response() takes either args or kwargs, not both")
-
-        if not args and not kwargs:
-            return None
-
-        if len(args) == 1:
-            return args[0]
-
-        return args or kwargs
+        pass
 
     def response(self, *args: t.Any, **kwargs: t.Any) -> Response:
         """Serialize the given arguments as JSON, and return a
@@ -101,24 +92,11 @@ class JSONProvider:
             treat as a list to serialize.
         :param kwargs: Treat as a dict to serialize.
         """
-        obj = self._prepare_response_obj(args, kwargs)
-        return self._app.response_class(self.dumps(obj), mimetype="application/json")
+        pass
 
 
 def _default(o: t.Any) -> t.Any:
-    if isinstance(o, date):
-        return http_date(o)
-
-    if isinstance(o, (decimal.Decimal, uuid.UUID)):
-        return str(o)
-
-    if dataclasses and dataclasses.is_dataclass(o):
-        return dataclasses.asdict(o)  # type: ignore[arg-type]
-
-    if hasattr(o, "__html__"):
-        return str(o.__html__())
-
-    raise TypeError(f"Object of type {type(o).__name__} is not JSON serializable")
+    pass
 
 
 class DefaultJSONProvider(JSONProvider):
@@ -173,10 +151,7 @@ class DefaultJSONProvider(JSONProvider):
         :param obj: The data to serialize.
         :param kwargs: Passed to :func:`json.dumps`.
         """
-        kwargs.setdefault("default", self.default)
-        kwargs.setdefault("ensure_ascii", self.ensure_ascii)
-        kwargs.setdefault("sort_keys", self.sort_keys)
-        return json.dumps(obj, **kwargs)
+        pass
 
     def loads(self, s: str | bytes, **kwargs: t.Any) -> t.Any:
         """Deserialize data as JSON from a string or bytes.
@@ -184,7 +159,7 @@ class DefaultJSONProvider(JSONProvider):
         :param s: Text or UTF-8 bytes.
         :param kwargs: Passed to :func:`json.loads`.
         """
-        return json.loads(s, **kwargs)
+        pass
 
     def response(self, *args: t.Any, **kwargs: t.Any) -> Response:
         """Serialize the given arguments as JSON, and return a
@@ -202,14 +177,4 @@ class DefaultJSONProvider(JSONProvider):
             treat as a list to serialize.
         :param kwargs: Treat as a dict to serialize.
         """
-        obj = self._prepare_response_obj(args, kwargs)
-        dump_args: dict[str, t.Any] = {}
-
-        if (self.compact is None and self._app.debug) or self.compact is False:
-            dump_args.setdefault("indent", 2)
-        else:
-            dump_args.setdefault("separators", (",", ":"))
-
-        return self._app.response_class(
-            f"{self.dumps(obj, **dump_args)}\n", mimetype=self.mimetype
-        )
+        pass
